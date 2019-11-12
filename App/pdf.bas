@@ -15,7 +15,7 @@ Sub basic
 	maker.Initialize
 	maker.AddString("First paragraph")
 	maker.AddString("Another paragraph, this time a little bit longer to make sure, this line will be divided into at least two lines")
-	maker.Open
+	maker.Open("basic.pdf")
 End Sub
 
 Sub tables
@@ -89,7 +89,7 @@ Sub tables
 				
 	
 	maker.AddTable(tblD)
-	maker.open
+	maker.open("tables.pdf")
 End Sub
 
 Sub margins
@@ -119,7 +119,7 @@ Sub margins
 	'
 	maker.AddStack(stack)
 	'
-	maker.open
+	maker.open("margins.pdf")
 End Sub
 
 Sub inlineStyles
@@ -149,7 +149,7 @@ Sub inlineStyles
 	para.AddString("then.\n\n")
 	maker.AddParagraphs(para)
 	 
-	maker.open
+	maker.open("inlinestyles.pdf")
 End Sub
 
 'Sub images
@@ -236,5 +236,5 @@ Sub columns
 	colX.AddText(maker.CreateText("Some text with 20 fontsize").SetFontSize(20))
 	maker.AddColumns(colX)
 	'
-	maker.Open
+	maker.Open("columns.pdf")
 End Sub

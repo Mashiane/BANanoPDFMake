@@ -256,40 +256,25 @@ Sub getJSON As String
 End Sub
 
 'download the pdf document
-Sub Download
+Sub Download(fileName As String)
 	Dim ddy As Map = getDD
 	pdfMake.Initialize("pdfMake")
 	Dim dx As BANanoObject = pdfMake.RunMethod("createPdf", ddy)
-	dx.RunMethod("download", Null)
+	dx.RunMethod("download", Array(fileName))
 End Sub
 
 'print the pdf document
-Sub Print
+Sub Print(fileName As String)
 	Dim ddy As Map = getDD
 	pdfMake.Initialize("pdfMake")
 	Dim dx As BANanoObject = pdfMake.RunMethod("createPdf", ddy)
-	dx.RunMethod("print", Null)
+	dx.RunMethod("print", Array(fileName))
 End Sub
 
 'open the pdf document
-Sub Open
+Sub Open(fileName As String)
 	Dim ddy As Map = getDD
 	pdfMake.Initialize("pdfMake")
 	Dim dx As BANanoObject = pdfMake.RunMethod("createPdf", ddy)
-	dx.RunMethod("open", Null)
-End Sub
-
-'open in an iframe
-Sub ToIFrame(divID As String)
-	Dim ddy As Map = getDD
-	pdfMake.Initialize("pdfMake")
-	Dim pdfDocGenerator As BANanoObject = pdfMake.RunMethod("createPdf", ddy)
-	Dim dataUrl As Object
-	pdfDocGenerator.RunMethod("getDataUrl",Array(dataUrl))
-	'
-	Dim kID As String = $"#${divID}"$
-	Dim targetElement As BANanoObject = BANano.Window.GetField("document").RunMethod("querySelector", Array(kID))
-	Dim iframe As BANanoObject = BANano.Window.GetField("document").runmethod("createElement", Array("iframe"))
-	iframe.SetField("src", dataUrl)
-	targetElement.RunMethod("appendChild", Array(iframe))
+	dx.RunMethod("open", Array(fileName))
 End Sub

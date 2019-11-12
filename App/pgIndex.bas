@@ -175,7 +175,7 @@ Sub Init
 	maker.AddTable(tbl)
 	
 	'Log(maker.DD)
-	maker.Download
+	maker.Download("bananopdfmake.pdf")
 	
 	
 End Sub
