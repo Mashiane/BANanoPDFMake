@@ -2,58 +2,36 @@
 Build1=Default,b4j.example
 File1=jquery.media.js
 File2=jquery-3.4.1.min.js
-File3=pdfmake.js
-File4=upload.php
-File5=vfs_fonts.js
 FileGroup1=Default Group
 FileGroup2=Default Group
-FileGroup3=Default Group
-FileGroup4=Default Group
-FileGroup5=Default Group
 Group=Default Group
 Library1=jcore
 Library2=jfx
 Library3=banano
-Module1=PDFTable
-Module10=PDFStack
-Module11=PDFParagraphs
-Module12=PDFQRCode
-Module13=PDFSecurity
-Module14=PDFImage
-Module15=PDFRow
-Module2=PDFView
-Module3=PDFMaker
-Module4=PDFText
-Module5=PDFToC
-Module6=PDFStyle
-Module7=PDFColumns
-Module8=PDFList
-Module9=PDFFooter
-NumberOfFiles=5
+Module1=PDFView
+NumberOfFiles=2
 NumberOfLibraries=3
-NumberOfModules=15
+NumberOfModules=1
 Version=7.8
 @EndOfDesignText@
 #Region Project Attributes 
 	#MergeLibraries: True
 	#LibraryAuthor: TheMash
-	#LibraryVersion: 102
-	#LibraryName: BANanoPDFMake
+	#LibraryVersion: 100
+	#LibraryName: BANanoPDFView
 #End Region
 
 Sub Process_Globals
 	Public BANano As BANano 'ignore
-	Public AppName As String = "BANanoPDFMake"
+	Public AppName As String = "BANanoPDFView"
 End Sub
 
 Sub AppStart (Form1 As Form, Args() As String)
 	'initialize banano for first use
-	BANano.Initialize("BANano", AppName, 101)
-	BANano.Header.AddJavascriptFile("pdfmake.js")
-	BANano.Header.AddJavascriptFile("vfs_fonts.js")
+	BANano.Initialize("BANano", AppName, 100)
 	BANano.Header.AddJavascriptFile("jquery-3.4.1.min.js")
 	BANano.Header.AddJavascriptFile("jquery.media.js")
-	BANano.BuildAsB4XLib("1.02")
+	BANano.BuildAsB4XLib("1")
 	ExitApplication
 End Sub
 

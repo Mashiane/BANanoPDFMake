@@ -8,6 +8,27 @@ Version=7.8
 #IgnoreWarnings:12
 Sub Process_Globals
 	Private fx As JFX
+	Private BANano As BANano
+	Private maker As PDFMaker
+End Sub
+
+Sub display
+	maker.Initialize
+	maker.AddString("First paragraph")
+	maker.AddString("Another paragraph, this time a little bit longer to make sure, this line will be divided into at least two lines")
+	'
+	maker.Upload(Me, "doUpload", "basic.pdf")
+End Sub
+
+Sub doUpload(fd As BANanoObject)
+	Dim res As Map = BANano.FromJson(BANano.CallAjaxWait("http://localhost/demo/assets/upload.php", "POST", "application/pdf", fd, False, Null))
+	Dim status As String = res.Get("status")
+	Select Case status
+	Case "success"
+		Dim view As PDFView
+		view.Initialize("basic").SetHREF("./assets/basic.pdf").SetWidth(800).SetHeight(500).view
+	Case "error"
+	End Select	
 End Sub
 
 Sub images

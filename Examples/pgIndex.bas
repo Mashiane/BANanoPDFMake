@@ -15,8 +15,10 @@ Sub Init
 	body = BANano.GetElement("#body")
 	'empty the element
 	body.Empty
+	body.Append($"<iframe id="basic"></iframe>"$)
 	'
-	pdf.basic
+	pdf.display
+	'pdf.basic
 	'pdf.columns
 	'pdf.images
 	'pdf.inlineStyles
@@ -39,10 +41,6 @@ Sub Init
 	'maker.security.ownerPassword = "UOE"
 	maker.security.copying = False
 	
-	'create toc
-	'Dim toc As PDFText = maker.CreateText("My TOC")
-	'maker.SetToC(toc)
-		
 	'add a header
 	Dim hdr As PDFText = maker.CreateText("Creating client side PDF documents with BANanoPDFMake")
 	hdr.style.alignmentCenter = True
@@ -176,8 +174,20 @@ Sub Init
 	
 	maker.AddTable(tbl)
 	
-	maker.Download("bananopdfmake.pdf")
+	'maker.Download("bananopdfmake.pdf")
+	'upload the pdf document to the server
+	maker.Upload(Me, "doUpload", "themash.pdf")
 	
-	
+End Sub
+
+Sub doUpload(fd As BANanoObject)
+	Dim res As Map = BANano.FromJson(BANano.CallAjaxWait("http://localhost/demo/assets/upload.php", "POST", "application/pdf", fd, False, Null))
+	Dim status As String = res.Get("status")
+	Select Case status
+	Case "success"
+		Dim view As PDFView
+		view.Initialize("basic").SetHREF("./assets/themash.pdf").SetHeight(800).SetWidth(800).View
+	Case "error"
+	End Select	
 End Sub
 

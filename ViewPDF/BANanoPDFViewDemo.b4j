@@ -1,22 +1,17 @@
 ﻿AppType=JavaFX
 Build1=Default,b4j.example
-File1=1.jpg
-File2=79.jpg
-File3=yuna.jpg
+File1=themash.pdf
 FileGroup1=Default Group
-FileGroup2=Default Group
-FileGroup3=Default Group
 Group=Default Group
 Library1=jcore
 Library2=jfx
 Library3=banano
 Library4=bananopostprocessor
-Library5=bananopdfmake
-Module1=pdf
-Module2=pgIndex
-NumberOfFiles=3
+Library5=bananopdfview
+Module1=pgIndex
+NumberOfFiles=1
 NumberOfLibraries=5
-NumberOfModules=2
+NumberOfModules=1
 Version=7.8
 @EndOfDesignText@
 #Region Project Attributes 
@@ -25,7 +20,7 @@ Version=7.8
 
 Sub Process_Globals
 	Public BANano As BANano 'ignore
-	Public AppName As String = "demo"
+	Public AppName As String = "viewpdf"
 	Private Publish As String
 	Private BP As BANanoPostProcessor
 End Sub
@@ -45,9 +40,6 @@ Sub AppStart (Form1 As Form, Args() As String)
 	BANano.Header.Title = AppName
 	BANano.JAVASCRIPT_NAME = appFile
 	BANano.TranspilerOptions.UseServiceWorker = False
-	'make
-	BANano.Header.AddJavascriptFile("pdfmake.js")
-	BANano.Header.AddJavascriptFile("vfs_fonts.js")
 	'view
 	BANano.Header.AddJavascriptFile("jquery-3.4.1.min.js")
 	BANano.Header.AddJavascriptFile("jquery.media.js")

@@ -31,6 +31,8 @@ Sub Class_Globals
 	Private images As Map
 	Private fileKeys As Map
 	Private action As String
+	Private eventHandler As Object
+	Private eventMethod As String
 End Sub
 
 'Initializes the maker
@@ -380,61 +382,53 @@ private Sub FilesAreReady()
 	' build the actual report
 End Sub
 
-
-Sub getDataURL
+'get the data url of the document
+Sub GetDataURL(module As Object, methodName As String, data As Object)
 	Dim ddy As Map = getDD
-	Dim value As Object
-	Dim gd As BANanoObject = BANano.CallBack(Me, "pdfdata", Array(value))
+	Dim gd As BANanoObject = BANano.CallBack(module, methodName, Array(data))
 	pdfMake.RunMethod("createPdf", ddy).RunMethod("getDataUrl", Array(gd))
 End Sub
 
-'disply the PDF in an iframe
-Sub Display(elID As String)
-	elID = elID.tolowercase
-	parentID = elID
-	'
-	Dim Data As Object
-	Dim Error As Object
+'get the blob of the document
+Sub GetBlob(module As Object, methodName As String, data As Object)
 	Dim ddy As Map = getDD
-	Dim pdfPromise As BANanoPromise = pdfMake.RunMethod("createPdf", ddy).RunMethod("getDataUrl", Null).Result
-	pdfPromise.Then(Data)
-		Log(Data)
-	pdfPromise.else(Error)
-		Log(Error)
-	pdfPromise.End
+	Dim gd As BANanoObject = BANano.CallBack(module, methodName, Array(data))
+	pdfMake.RunMethod("createPdf", ddy).RunMethod("getBlob", Array(gd))
 End Sub
-'
-'private Sub pdfshow(data As Object)
-'	Dim pKey As String = $"#${parentID}"$
-'	Dim targetElement As BANanoObject = BANano.Window.GetField("document").RunMethod("querySelector", Array(pKey))
-'	Dim iframe As BANanoObject = BANano.Window.GetField("document").RunMethod("createElement", Array("iframe"))
-'	iframe.SetField("src", data)
-'	targetElement.RunMethod("appendChild", Array(iframe))
-'	Log(data)	
-'	
-'	Blob = Recorder.RunMethod("getBlob", Null).Result
-'	mElement.SetField("src", BANano.createObjectURL(Blob))
-'	
-'End Sub
 
+'get the buffer of the document
+Sub GetBuffer(module As Object, methodName As String, data As Object)
+	Dim ddy As Map = getDD
+	Dim gd As BANanoObject = BANano.CallBack(module, methodName, Array(data))
+	pdfMake.RunMethod("createPdf", ddy).RunMethod("getBuffer", Array(gd))
+End Sub
 
-'Sub Upload(fileName As String)
-'	fName = fileName
-'	Dim ddy As Map = getDD
-'	Dim value As Object
-'	Dim gd As BANanoObject = BANano.CallBack(Me, "PDFUpload", Array(value))
-'	pdfMake.RunMethod("createPdf", ddy).RunMethod("getDataUrl", Array(gd))
-'End Sub
-'
-'private Sub PDFUpload(data As Object)
-'	
-'End Sub
-'
-'public Sub UploadWait(FileName As String) ' untested, will need a certificate for https with port 55501 which I don't have yet so this wil lget a Certificate/CORS error
-''	Dim formData As BANanoObject
-''	formData.Initialize2("FormData",Null)
-''	formData.SetField("fname", FileName)
-''	formData.SetField("data", Blob)
-''	
-''	BANano.CallAjaxWait("https://banano.alwaysbusy.org:55501/upload","POST","video/webm", formData, False, Null)
-'End Sub
+'get the base64 of the document
+Sub GetBase64(module As Object, methodName As String, data As Object)
+	Dim ddy As Map = getDD
+	Dim gd As BANanoObject = BANano.CallBack(module, methodName, Array(data))
+	pdfMake.RunMethod("createPdf", ddy).RunMethod("getBase64", Array(gd))
+End Sub
+
+'prepare to upload, returns formData
+Sub PrepareToUpload(blob As Object, fileName As String) As BANanoObject
+	Dim formData As BANanoObject
+	formData.Initialize2("FormData",Null)
+	formData.RunMethod("append", Array("upload", blob, fileName))
+	Return formData
+End Sub
+
+'upload the file
+Sub Upload(module As Object, methodName As String, fileName As String)
+	eventHandler = module
+	eventMethod = methodName
+	fName = fileName
+	'get the blob
+	Dim data As Object
+	GetBlob(Me, "forUpload", data)
+End Sub
+
+private Sub forUpload(data As Object)
+	Dim fd As BANanoObject = PrepareToUpload(data, fName)
+	BANano.CallSub(eventHandler, eventMethod, fd)
+End Sub
