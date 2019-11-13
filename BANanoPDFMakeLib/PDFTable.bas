@@ -91,6 +91,18 @@ Sub AddRow1(row As PDFRow) As PDFTable
 	Return Me
 End Sub
 
+'set page break before
+Sub SetPageBreakBefore As PDFTable
+	options.Put("pageBreak", "before")
+	Return Me
+End Sub
+
+'set page break after
+Sub SetPageBreakAfter As PDFTable
+	options.Put("pageBreak", "after")
+	Return Me
+End Sub
+
 'get the contents of the table
 Sub getContent As Map
 	If lightHorizontalLines <> Null Then options.Put("layout", "lightHorizontalLines")

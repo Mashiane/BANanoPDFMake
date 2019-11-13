@@ -27,6 +27,24 @@ Public Sub Initialize As PDFImage
 	Return Me
 End Sub
 
+'set width
+Sub SetWidth(w As Int) As PDFImage
+	width = w
+	Return Me
+End Sub
+
+'set height
+Sub SetHeight(h As Int) As PDFImage
+	height = h
+	Return Me
+End Sub
+
+'set image key
+Sub SetImage(imgKey As String) As PDFImage
+	image = imgKey
+	Return Me
+End Sub
+
 'set opacity
 Sub SetOpacity(opacity As Double) As PDFImage
 	options.Put("opacity", opacity)
@@ -42,7 +60,6 @@ Sub SetAbsolutePosition(x As Int, y As Int) As PDFImage
 	Return Me
 End Sub
 
-
 'make it fit
 Sub SetFit(w As Int, h As Int) As PDFImage
 	Dim lst As List
@@ -50,6 +67,18 @@ Sub SetFit(w As Int, h As Int) As PDFImage
 	lst.Add(w)
 	lst.Add(h)
 	options.Put("fit", lst)
+	Return Me
+End Sub
+
+'set page break before
+Sub SetPageBreakBefore As PDFImage
+	options.Put("pageBreak", "before")
+	Return Me
+End Sub
+
+'set page break after
+Sub SetPageBreakAfter As PDFImage
+	options.Put("pageBreak", "after")
 	Return Me
 End Sub
 

@@ -60,6 +60,18 @@ Sub AddString(txt As String) As PDFColumns
 	Return Me
 End Sub
 
+'set page break before
+Sub SetPageBreakBefore As PDFColumns
+	cols.Put("pageBreak", "before")
+	Return Me
+End Sub
+
+'set page break after
+Sub SetPageBreakAfter As PDFColumns
+	cols.Put("pageBreak", "after")
+	Return Me
+End Sub
+
 'get the contents of the columns
 Sub getContent As Map
 	If columnsInt.Size > 0 Then

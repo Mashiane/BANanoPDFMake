@@ -12,21 +12,15 @@ Sub Class_Globals
 End Sub
 
 'Initializes the stack: a collection of paragraphs
-Public Sub Initialize As PDFStack
+Public Sub Initialize As PDFParagraphs
 	contentInt.Initialize
 	contents.Initialize
 	style.Initialize 
 	Return Me
 End Sub
 
-'add a list
-Sub AddList(lst As PDFList) As PDFStack
-	contents.Add(lst.Content)
-	Return Me
-End Sub
-
 'set absolute position
-Sub SetAbsolutePosition(x As Int, y As Int) As PDFStack
+Sub SetAbsolutePosition(x As Int, y As Int) As PDFParagraphs
 	Dim opt As Map = CreateMap()
 	opt.Put("x", x)
 	opt.Put("y", y)
@@ -34,22 +28,34 @@ Sub SetAbsolutePosition(x As Int, y As Int) As PDFStack
 	Return Me
 End Sub
 
-
 'add pdf text
-Sub AddText(txt As PDFText) As PDFStack
+Sub AddText(txt As PDFText) As PDFParagraphs
 	contents.Add(txt.Content)
 	Return Me
 End Sub
 
 'add normal text
-Sub AddString(txt As String) As PDFStack
+Sub AddString(txt As String) As PDFParagraphs
 	contents.Add(txt)
+	Return Me
+End Sub
+
+
+'set page break before
+Sub SetPageBreakBefore As PDFParagraphs
+	contentInt.Put("pageBreak", "before")
+	Return Me
+End Sub
+
+'set page break after
+Sub SetPageBreakAfter As PDFParagraphs
+	contentInt.Put("pageBreak", "after")
 	Return Me
 End Sub
 
 'get the contents of the stack
 Sub getContent As Map
-	contentInt.Put("stack", contents)
+	contentInt.Put("text", contents)
 	style.Include(contentInt)
 	Return contentInt
 End Sub

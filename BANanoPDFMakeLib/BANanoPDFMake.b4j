@@ -1,0 +1,56 @@
+﻿AppType=JavaFX
+Build1=Default,b4j.example
+File1=pdfmake.js
+File2=upload.php
+File3=vfs_fonts.js
+FileGroup1=Default Group
+FileGroup2=Default Group
+FileGroup3=Default Group
+Group=Default Group
+Library1=jcore
+Library2=jfx
+Library3=banano
+Module1=PDFMaker
+Module10=PDFQRCode
+Module11=PDFSecurity
+Module12=PDFTable
+Module13=PDFImage
+Module14=PDFRow
+Module2=PDFText
+Module3=PDFToC
+Module4=PDFStyle
+Module5=PDFColumns
+Module6=PDFList
+Module7=PDFFooter
+Module8=PDFStack
+Module9=PDFParagraphs
+NumberOfFiles=3
+NumberOfLibraries=3
+NumberOfModules=14
+Version=7.8
+@EndOfDesignText@
+#Region Project Attributes 
+	#MergeLibraries: True
+	#LibraryAuthor: TheMash
+	#LibraryVersion: 1
+	#LibraryName: BANanoPDFMake
+#End Region
+
+Sub Process_Globals
+	Public BANano As BANano 'ignore
+	Public AppName As String = "BANanoPDFMake"
+End Sub
+
+Sub AppStart (Form1 As Form, Args() As String)
+	'initialize banano for first use
+	BANano.Initialize("BANano", AppName, 1)
+	BANano.Header.AddJavascriptFile("pdfmake.js")
+	BANano.Header.AddJavascriptFile("vfs_fonts.js")
+	BANano.BuildAsB4XLib(1)
+	ExitApplication
+End Sub
+
+'Return true to allow the default exceptions handler to handle the uncaught exception.
+Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
+	Return True
+End Sub

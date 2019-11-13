@@ -10,12 +10,81 @@ Sub Process_Globals
 	Private fx As JFX
 End Sub
 
+Sub images
+	Dim maker As PDFMaker
+	maker.Initialize 
+	'preload images before use, we can use them anywhere in our doc by key
+	maker.Preload("one", "./assets/1.jpg")
+	maker.Preload("seven9", "./assets/79.jpg")
+	maker.Preload("yuna", "./assets/yuna.jpg")
+	'
+	maker.AddString("Image Manipulation")
+	maker.AddImage(maker.CreateImage("one").SetWidth(150).SetHeight(150))
+	'
+	maker.AddString("You can also fit the image inside a rectangle'")
+	maker.AddImage(maker.CreateImage("yuna").SetFit(100, 100).SetPageBreakAfter)
+	'
+	maker.AddString("and opacity is supported")
+	maker.AddImage(maker.CreateImage("seven9").SetWidth(150).SetOpacity(0.5))
+	'
+	maker.AddString("place image at xy")
+	maker.AddImage(maker.CreateImage("seven9").SetWidth(60).SetHeight(60).SetAbsolutePosition(500, 50))
+	maker.Download("images.pdf")
+End Sub
+
 Sub basic
 	Dim maker As PDFMaker
 	maker.Initialize
 	maker.AddString("First paragraph")
 	maker.AddString("Another paragraph, this time a little bit longer to make sure, this line will be divided into at least two lines")
-	maker.Open("basic.pdf")
+	maker.Download("basic.pdf")
+End Sub
+
+Sub toc
+	Dim maker As PDFMaker
+	maker.Initialize
+	
+	'add global styles and add them to definition
+	Dim header As PDFStyle = maker.CreateStyle("header").SetFontSize(18).SetBold(True)
+	maker.AddStyle(header)
+	'
+	Dim subheader As PDFStyle = maker.CreateStyle("subheader").SetFontSize(15).SetBold(True)
+	maker.AddStyle(subheader)
+	'
+	Dim quotex As PDFStyle = maker.CreateStyle("quote").SetItalics(True)
+	maker.AddStyle(quotex)
+	'
+	Dim small As PDFStyle = maker.CreateStyle("small").SetFontSize(8)
+	maker.AddStyle(small)
+
+	'
+	maker.AddText(maker.CreateText("This is a TOC example. Text elements marked with tocItem: true will be located in the toc. See below.").SetPageBreakAfter)
+	'
+	Dim tc As PDFToC = maker.CreateToc.SetTitle(maker.CreateText("TABLE OF CONTENTS").SetStyle("header"))
+	tc.SetNumberStyle(maker.CreateStyleOnly.SetBold(True))
+	maker.AddToc(tc)
+	'
+	Dim p1 As PDFText = maker.CreateText("This is a header, using header style").SetStyle("header")
+	p1.SetTocItem(True)
+	p1.SetPageBreakBefore
+	p1.SetTocStyle(maker.CreateStyleOnly.SetItalics(True))
+	p1.SetTocMargin(0, 10, 0, 0)
+	p1.SetTocNumberStyle(maker.CreateStyleOnly.SetItalics(True).SetDecoration("underline"))
+	maker.AddText(p1)
+	'
+	maker.AddString("Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam...")
+	
+	maker.AddText(maker.CreateText("Subheader 1 - using subheader style").SetStyle("subheader").SetTocItem(True).SetPageBreakBefore)
+	maker.AddString("Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam...")
+	maker.AddString("Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam...")
+	maker.AddString("Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam...")
+	'
+	maker.AddText(maker.CreateText("Subheader 2 - using subheader style").SetStyle("subheader").SetTocItem(True).SetPageBreakBefore)
+	maker.AddString("Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam...")
+	maker.AddString("Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam...")
+	'
+	maker.AddText(maker.CreateText("You can use multiple styles").SetStyle("quote").SetStyle("small"))
+	maker.Download("toc.pdf")
 End Sub
 
 Sub tables
@@ -89,7 +158,7 @@ Sub tables
 				
 	
 	maker.AddTable(tblD)
-	maker.open("tables.pdf")
+	maker.Download("tables.pdf")
 End Sub
 
 Sub margins
@@ -119,7 +188,7 @@ Sub margins
 	'
 	maker.AddStack(stack)
 	'
-	maker.open("margins.pdf")
+	maker.Download("margins.pdf")
 End Sub
 
 Sub inlineStyles
@@ -149,19 +218,8 @@ Sub inlineStyles
 	para.AddString("then.\n\n")
 	maker.AddParagraphs(para)
 	 
-	maker.open("inlinestyles.pdf")
+	maker.Download("inlinestyles.pdf")
 End Sub
-
-'Sub images
-'	Dim maker As PDFMaker
-'	maker.Initialize
-'	maker.AddString("if no width/height is specified, the actual size of the image is used")
-'	Dim img1 As PDFImage = maker.CreateImage
-'	img1.image = "./assets/yuna.jpg"
-'	maker.AddImage(img1)
-'	 
-'	maker.open
-'End Sub
 
 Sub columns
 	Dim maker As PDFMaker
@@ -236,5 +294,5 @@ Sub columns
 	colX.AddText(maker.CreateText("Some text with 20 fontsize").SetFontSize(20))
 	maker.AddColumns(colX)
 	'
-	maker.Open("columns.pdf")
+	maker.Download("columns.pdf")
 End Sub

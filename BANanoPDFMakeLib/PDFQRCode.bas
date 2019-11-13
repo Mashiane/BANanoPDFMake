@@ -48,6 +48,18 @@ Sub SetAbsolutePosition(x As Int, y As Int) As PDFQRCode
 End Sub
 
 
+'set page break before
+Sub SetPageBreakBefore As PDFQRCode
+	options.Put("pageBreak", "before")
+	Return Me
+End Sub
+
+'set page break after
+Sub SetPageBreakAfter As PDFQRCode
+	options.Put("pageBreak", "after")
+	Return Me
+End Sub
+
 'get the contents of the qr code
 Sub getContent As Map
 	If qr <> Null Then options.Put("qr", qr)

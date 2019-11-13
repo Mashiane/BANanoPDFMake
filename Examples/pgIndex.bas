@@ -16,13 +16,15 @@ Sub Init
 	'empty the element
 	body.Empty
 	'
-	'pdf.basic
+	pdf.basic
 	'pdf.columns
 	'pdf.images
 	'pdf.inlineStyles
 	'pdf.margins
 	'pdf.tables
-	'Return
+	'pdf.images
+	'pdf.toc
+	Return
 	
 	'
 	Dim maker As PDFMaker
@@ -72,7 +74,7 @@ Sub Init
 	'download banano
 	Dim db As PDFText = maker.CreateText("Download BANano 4.07+")
 	db.link = "https://www.b4x.com/android/forum/threads/banano-website-app-wpa-library-with-abstract-designer-support.99740/#content"
-	db.decoration = "underline"
+	db.style.decoration = "underline"
 	db.style.SetMargin(20,20,20,20)
 	db.tocItem = True
 	maker.AddText(db)
@@ -174,7 +176,6 @@ Sub Init
 	
 	maker.AddTable(tbl)
 	
-	'Log(maker.DD)
 	maker.Download("bananopdfmake.pdf")
 	
 	

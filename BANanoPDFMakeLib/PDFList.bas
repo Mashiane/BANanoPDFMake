@@ -57,6 +57,19 @@ Sub AddItems(lst As List)
 	Next
 End Sub
 
+
+'set page break before
+Sub SetPageBreakBefore As PDFList
+	listX.Put("pageBreak", "before")
+	Return Me
+End Sub
+
+'set page break after
+Sub SetPageBreakAfter As PDFList
+	listX.Put("pageBreak", "after")
+	Return Me
+End Sub
+
 'get the list content
 Sub getContent As Map
 	If reversed <> Null Then listX.Put("reversed", reversed)

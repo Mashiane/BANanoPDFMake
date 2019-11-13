@@ -23,10 +23,20 @@ Sub Class_Globals
 	Private info As Map
 	Private compress As Boolean
 	Public security As PDFSecurity
+	Private parentID As String
+	Private fName As String
+	Private Blobs As Map
+	Private NumFiles As Int
+	Private files As Map
+	Private images As Map
+	Private fileKeys As Map
+	Private action As String
 End Sub
 
 'Initializes the maker
 Public Sub Initialize As PDFMaker
+	pdfMake.Initialize("pdfMake")
+	Blobs.Initialize
 	styles.Initialize 
 	docDefinition.Initialize 
 	content.Initialize 
@@ -43,7 +53,32 @@ Public Sub Initialize As PDFMaker
 	info.Initialize
 	compress = Null 
 	security.Initialize 
+	files.Initialize 
+	images.Initialize 
+	fileKeys.Initialize 
 	Return Me
+End Sub
+
+'preload images before use
+Sub Preload(key As String, url As String) As PDFMaker
+	files.Put(key, url)
+	fileKeys.Put(url, key)
+	'how many files we need
+	NumFiles = files.size
+	Return Me
+End Sub
+
+'add toc
+Sub AddToC(toc As PDFToC) As PDFMaker
+	content.Add(toc.Content)
+	Return Me
+End Sub
+
+'create the TOC
+Sub CreateToC As PDFToC
+	Dim toc As PDFToC
+	toc.Initialize 
+	Return toc
 End Sub
 
 'set the margins
@@ -70,9 +105,10 @@ Sub CreateTable As PDFTable
 End Sub
 
 'create an image
-Sub CreateImage As PDFImage
+Sub CreateImage(imgKey As String) As PDFImage
 	Dim img As PDFImage
 	img.Initialize 
+	img.SetImage(imgKey)
 	Return img
 End Sub
 
@@ -90,15 +126,6 @@ End Sub
 
 Sub SetWaterMark(wm As PDFText) As PDFMaker
 	docDefinition.Put("watermark", wm.Content)
-	Return Me
-End Sub
-
-Sub SetToC(toc As PDFText) As PDFMaker
-	Dim tocm As Map = CreateMap()
-	tocm.Put("title", toc.Content)
-	Dim toct As Map = CreateMap()
-	toct.Put("toc", tocm)
-	content.Add(toct)
 	Return Me
 End Sub
 
@@ -206,6 +233,13 @@ Sub CreateStyle(name As String) As PDFStyle
 	Return Style
 End Sub
 
+'create style only
+Sub CreateStyleOnly As PDFStyle
+	Dim stl As PDFStyle
+	stl.Initialize 
+	Return stl
+End Sub
+
 'create new text content
 Sub CreateText(txt As String) As PDFText
 	Dim cnt As PDFText
@@ -244,7 +278,7 @@ Sub getDD As Map
 	If security.userPassword <> Null Then docDefinition.Put("userPassword", security.userPassword)
 	If security.ownerPassword <> Null Then docDefinition.Put("ownerPassword", security.ownerPassword)
 	docDefinition.Put("permissions", security.content)
-	docDefinition.Put("defaultStyle", defaultStyle)
+	docDefinition.Put("defaultStyle", defaultStyle.content)
 	Return docDefinition
 End Sub
 
@@ -257,24 +291,150 @@ End Sub
 
 'download the pdf document
 Sub Download(fileName As String)
-	Dim ddy As Map = getDD
-	pdfMake.Initialize("pdfMake")
-	Dim dx As BANanoObject = pdfMake.RunMethod("createPdf", ddy)
-	dx.RunMethod("download", Array(fileName))
+	fName = fileName
+	action = "download"
+	Build
+End Sub
+
+'build the report
+private Sub Build
+	If files.Size > 0 Then
+		For Each k As String In files.Keys
+			'get the file url
+			Dim v As String = files.Get(k)
+			GetFileFromServer(v)
+		Next
+	Else
+		FilesAreReady
+	End If
 End Sub
 
 'print the pdf document
-Sub Print(fileName As String)
-	Dim ddy As Map = getDD
-	pdfMake.Initialize("pdfMake")
-	Dim dx As BANanoObject = pdfMake.RunMethod("createPdf", ddy)
-	dx.RunMethod("print", Array(fileName))
+Sub Print
+	action = "print"
+	Build
 End Sub
 
 'open the pdf document
-Sub Open(fileName As String)
-	Dim ddy As Map = getDD
-	pdfMake.Initialize("pdfMake")
-	Dim dx As BANanoObject = pdfMake.RunMethod("createPdf", ddy)
-	dx.RunMethod("open", Array(fileName))
+Sub Open
+	action = "open"
+	Build
 End Sub
+
+
+'code from alwaysbusy
+private Sub GetFileFromServer(FileName As String)
+	Dim Response As BANanoFetchResponse
+	Dim Blob As BANanoObject
+  
+	' list (GET is default, and we do not need extra options so we pass Null for the options)
+	Dim fetch1 As BANanoFetch
+	fetch1.Initialize(FileName, Null)
+	fetch1.Then(Response)
+	' we got the response promise, so resolve it to a blob
+	fetch1.Return(Response.Blob)
+	fetch1.Then(Blob)
+	' we got the blob, read it in a FileReader
+	Dim FileReader As BANanoObject
+	FileReader.Initialize2("FileReader", Null)
+	Dim event As BANanoEvent
+	' when loaded...
+	FileReader.AddEventListenerOpen("onload", Array(event))
+	' get the data
+	Dim Target As BANanoObject = event.OtherField("target")
+	Dim DataUrl As String = Target.GetField("result").Result
+	' save the data per filename
+	Blobs.Put(FileName, DataUrl)
+	' if we have them all...
+	If Blobs.Size = NumFiles Then
+		FilesAreReady
+	End If
+	' closing the 'onload' event listener function
+	FileReader.CloseEventListener
+	' get the DataURL, which will call the 'onload' method we've just written
+	FileReader.RunMethod("readAsDataURL", Blob)
+	fetch1.End ' always end a fetch with this!
+End Sub
+
+private Sub FilesAreReady()
+	If files.Size > 0 Then
+		' we got all the files in base64 format
+		For Each k As String In Blobs.Keys
+			'get the file key using URL
+			Dim v As String = fileKeys.Get(k)
+			Dim DataUrl As String = Blobs.Get(k)
+			images.Put(v, DataUrl)
+		Next
+  		If images.Size > 0 Then docDefinition.Put("images", images)
+	End If
+	'ge the definition
+	Dim ddy As Map = getDD
+	Select Case action
+	Case "download"
+		pdfMake.RunMethod("createPdf", ddy).RunMethod("download", Array(fName))
+	Case "print"
+		pdfMake.RunMethod("createPdf", ddy).RunMethod("print", Null)
+	Case "open"
+		pdfMake.RunMethod("createPdf", ddy).RunMethod("open", Null)
+	End Select
+	' build the actual report
+End Sub
+
+
+Sub getDataURL
+	Dim ddy As Map = getDD
+	Dim value As Object
+	Dim gd As BANanoObject = BANano.CallBack(Me, "pdfdata", Array(value))
+	pdfMake.RunMethod("createPdf", ddy).RunMethod("getDataUrl", Array(gd))
+End Sub
+
+'disply the PDF in an iframe
+Sub Display(elID As String)
+	elID = elID.tolowercase
+	parentID = elID
+	'
+	Dim Data As Object
+	Dim Error As Object
+	Dim ddy As Map = getDD
+	Dim pdfPromise As BANanoPromise = pdfMake.RunMethod("createPdf", ddy).RunMethod("getDataUrl", Null).Result
+	pdfPromise.Then(Data)
+		Log(Data)
+	pdfPromise.else(Error)
+		Log(Error)
+	pdfPromise.End
+End Sub
+'
+'private Sub pdfshow(data As Object)
+'	Dim pKey As String = $"#${parentID}"$
+'	Dim targetElement As BANanoObject = BANano.Window.GetField("document").RunMethod("querySelector", Array(pKey))
+'	Dim iframe As BANanoObject = BANano.Window.GetField("document").RunMethod("createElement", Array("iframe"))
+'	iframe.SetField("src", data)
+'	targetElement.RunMethod("appendChild", Array(iframe))
+'	Log(data)	
+'	
+'	Blob = Recorder.RunMethod("getBlob", Null).Result
+'	mElement.SetField("src", BANano.createObjectURL(Blob))
+'	
+'End Sub
+
+
+'Sub Upload(fileName As String)
+'	fName = fileName
+'	Dim ddy As Map = getDD
+'	Dim value As Object
+'	Dim gd As BANanoObject = BANano.CallBack(Me, "PDFUpload", Array(value))
+'	pdfMake.RunMethod("createPdf", ddy).RunMethod("getDataUrl", Array(gd))
+'End Sub
+'
+'private Sub PDFUpload(data As Object)
+'	
+'End Sub
+'
+'public Sub UploadWait(FileName As String) ' untested, will need a certificate for https with port 55501 which I don't have yet so this wil lget a Certificate/CORS error
+''	Dim formData As BANanoObject
+''	formData.Initialize2("FormData",Null)
+''	formData.SetField("fname", FileName)
+''	formData.SetField("data", Blob)
+''	
+''	BANano.CallAjaxWait("https://banano.alwaysbusy.org:55501/upload","POST","video/webm", formData, False, Null)
+'End Sub

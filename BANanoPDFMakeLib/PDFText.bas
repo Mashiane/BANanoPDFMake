@@ -17,17 +17,12 @@ Sub Class_Globals
 	Public style As PDFStyle
 	Public colSpan As Int
 	Public rowSpan As Int
-	Public fillColor As String
-	Public decoration As String
 	Public linkToDestination As String
 	Public id As String 
 	Public listType As String
 	Public pageReference As String
 	Public textReference As String
 	Public preserveLeadingSpaces As Boolean
-	Public background As String
-	Public decorationStyle As String
-	Public decorationColor As String
 End Sub
 
 'Initializes the text
@@ -43,18 +38,40 @@ Public Sub Initialize As PDFText
 	pageOrientation = Null
 	colSpan = Null
 	rowSpan = Null
-	fillColor = Null
-	decoration = Null
 	linkToDestination = Null
 	listType = Null
 	id = Null
 	pageReference = Null
 	textReference = Null
 	preserveLeadingSpaces = Null
-	background = Null
-	decorationStyle = Null
-	decorationColor = Null
 	Return Me 
+End Sub
+
+'set tocNumberStyle
+Sub SetTocNumberStyle(ts As PDFStyle) As PDFText
+	contentInt.Put("tocNumberStyle", ts)
+	Return Me
+End Sub
+
+'set tocStyle
+Sub SetTocStyle(ts As PDFStyle) As PDFText
+	contentInt.Put("tocStyle", ts)
+	Return Me
+End Sub
+
+'set margins for the toc
+Sub SetTocMargin(l As Int, t As Int, r As Int, b As Int) As PDFText
+	Dim margin As List
+	margin.Initialize
+	margin.AddAll(Array(l,t,r,b))
+	contentInt.Put("tocMargin", margin)
+	Return Me
+End Sub
+
+'set tocItem
+Sub SetTocItem(ti As Boolean) As PDFText
+	tocItem = ti
+	Return Me
 End Sub
 
 'set absolute position
@@ -86,7 +103,7 @@ End Sub
 
 'set fill color
 Sub SetFillColor(fc As Object) As PDFText
-	fillColor = fc
+	style.fillColor = fc
 	Return Me
 End Sub
 
@@ -165,6 +182,18 @@ Sub AppendLine(txt As String) As PDFText
 	Return Me
 End Sub
 
+'set page break before
+Sub SetPageBreakBefore As PDFText
+	contentInt.Put("pageBreak", "before")
+	Return Me
+End Sub
+
+'set page break after
+Sub SetPageBreakAfter As PDFText
+	contentInt.Put("pageBreak", "after")
+	Return Me
+End Sub
+
 'get the contents of the ext
 Sub getContent As Map
 	Dim outcome As String = textInt.tostring
@@ -177,17 +206,12 @@ Sub getContent As Map
 	If pageBreakAfter Then contentInt.Put("pageBreak", "after")
 	If colSpan <> Null Then contentInt.Put("colSpan", colSpan)
 	If rowSpan <> Null Then contentInt.Put("rowSpan", rowSpan)
-	If fillColor <> Null Then contentInt.Put("fillColor", fillColor)
-	If decoration <> Null Then contentInt.Put("decoration", decoration)
 	If linkToDestination <> Null Then contentInt.Put("linkToDestination", linkToDestination)
 	If id <> Null Then contentInt.Put("id", id)
 	If listType <> Null Then contentInt.Put("listType", listType)
 	If pageReference <> Null Then contentInt.Put("pageReference", pageReference)
 	If textReference <> Null Then contentInt.Put("textReference", textReference)
 	If preserveLeadingSpaces <> Null Then contentInt.Put("preserveLeadingSpaces", preserveLeadingSpaces)
-	If background <> Null Then contentInt.Put("background", background)
-	If decorationStyle <> Null Then contentInt.Put("decorationStyle", decorationStyle)
-	if decorationColor <> null then contentInt.Put("decorationColor", decorationColor)
 	style.Include(contentInt)
 	Return contentInt
 End Sub
