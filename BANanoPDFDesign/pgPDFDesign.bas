@@ -337,7 +337,8 @@ Sub treev_select(e As BANanoObject, node As Object, id As String)
 End Sub
 
 Sub PreviewStyle(sid As String, smap As Map)
-	'hide the document
+	vpdf.SetVisible(True)
+	pcode.setvisible(True)
 	pcode.SetText("")
 	mTabs.ChangeTab("preview")
 	mTabs.ChangeTab("code")
@@ -428,6 +429,8 @@ Sub saveTable(e As BANanoEvent)
 End Sub
 
 Sub PreviewTable(sid As String, smap As Map)
+	vpdf.SetVisible(True)
+	pcode.setvisible(True)
 	pcode.SetText("")
 	'hide the document
 	mTabs.ChangeTab("preview")
@@ -562,6 +565,8 @@ Sub Template_Text
 End Sub
 
 Sub PreviewText(sid As String, smap As Map)
+	vpdf.SetVisible(True)
+	pcode.setvisible(True)
 	pcode.SetText("")
 	'hide the document
 	mTabs.ChangeTab("preview")
@@ -926,6 +931,8 @@ Sub onSaveStyle(e As BANanoEvent)
 End Sub
 
 Sub CompileDoc
+	vpdf.SetVisible(True)
+	pcode.setvisible(True)
 	pcode.SetText("")
 	Dim docprops As Map = BANano.GetLocalStorage("pdfdoc")
 	If docprops.IsInitialized Then
