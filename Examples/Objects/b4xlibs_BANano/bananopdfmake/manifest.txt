@@ -1,0 +1,2 @@
+Version=1.05
+B4J.DependsOn=BANano

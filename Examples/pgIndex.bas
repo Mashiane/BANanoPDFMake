@@ -17,7 +17,7 @@ Sub Init
 	body.Empty
 	body.Append($"<iframe id="basic"></iframe>"$)
 	'
-	pdf.display
+	'pgpdf.display
 	'pdf.basic
 	'pdf.columns
 	'pdf.images
@@ -26,7 +26,7 @@ Sub Init
 	'pdf.tables
 	'pdf.images
 	'pdf.toc
-	Return
+	'Return
 	
 	'
 	Dim maker As PDFMaker
@@ -158,7 +158,6 @@ Sub Init
 	
 	'
 	Dim tbl As PDFTable = maker.CreateTable
-	tbl.lightHorizontalLines = True
 	tbl.headerRows = 1
 	tbl.AddColumn("1st", "*", Null)
 	tbl.AddColumn("2nd", "auto", Null)
@@ -186,7 +185,7 @@ Sub doUpload(fd As BANanoObject)
 	Select Case status
 	Case "success"
 		Dim view As PDFView
-		view.Initialize("basic").SetHREF("./assets/themash.pdf").SetHeight(800).SetWidth(800).View
+		view.Initialize("basic").SetHREF("./assets/themash.pdf").SetHeight(800).SetWidth(800).Refresh
 	Case "error"
 	End Select	
 End Sub

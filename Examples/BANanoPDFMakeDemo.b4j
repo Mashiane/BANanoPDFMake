@@ -12,8 +12,8 @@ Library2=jfx
 Library3=banano
 Library4=bananopostprocessor
 Library5=bananopdfmake
-Module1=pdf
-Module2=pgIndex
+Module1=pgIndex
+Module2=pgPdf
 NumberOfFiles=3
 NumberOfLibraries=5
 NumberOfModules=2
@@ -45,13 +45,7 @@ Sub AppStart (Form1 As Form, Args() As String)
 	BANano.Header.Title = AppName
 	BANano.JAVASCRIPT_NAME = appFile
 	BANano.TranspilerOptions.UseServiceWorker = False
-	'make
-	BANano.Header.AddJavascriptFile("pdfmake.js")
-	BANano.Header.AddJavascriptFile("vfs_fonts.js")
-	'view
-	BANano.Header.AddJavascriptFile("jquery-3.4.1.min.js")
-	BANano.Header.AddJavascriptFile("jquery.media.js")
-		
+			
 	BANano.Build(Publish)
 	BP.OpenLog(File.DirApp, "log.txt")
 	

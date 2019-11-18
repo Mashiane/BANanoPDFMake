@@ -1,0 +1,10 @@
+Reading B4J INI in C:\Users\anelembanga\AppData\Roaming\Anywhere Software\B4J to find Additional Libraries folder...
+Found Additional Libraries folder: C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Libraries
+Building C:\laragon\www\viewpdf\scripts\app1574110848906.js
+Loading library: C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Libraries\bananopostprocessor.xml
+Library: C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Libraries\bananopostprocessor.xml is not a BANano library!
+Processing b4xlib: bananopdfview
+Copying CSS files to WebApp assets...
+Copying Javascript files to WebApp assets...
+Building C:\laragon\www\viewpdf\index.html
+Done!

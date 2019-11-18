@@ -1,0 +1,135 @@
+﻿AppType=JavaFX
+Build1=Default,b4j.example
+File1=fonts.zip
+File2=upload.php
+FileGroup1=Default Group
+FileGroup2=Default Group
+Group=Default Group
+Library1=jcore
+Library2=jfx
+Library3=banano
+Library4=bananopostprocessor
+Library5=bananovuematerial
+Module1=pgPDFDesign
+NumberOfFiles=2
+NumberOfLibraries=5
+NumberOfModules=1
+Version=7.8
+@EndOfDesignText@
+#Region Project Attributes 
+	#MergeLibraries: True
+	#LibraryAuthor: Anele Mashy Mbanga
+	#LibraryVersion: 0.01
+	#LibraryName: BANanoPDFDesign
+#End Region
+
+Sub Process_Globals
+	Public BANano As BANano 'ignore
+	Public AppName As String = "BANanoPDFDesign"
+	Private Publish As String
+	Private BP As BANanoPostProcessor
+End Sub
+
+Sub AppStart (Form1 As Form, Args() As String)
+	'post processor
+	BP.Initialize
+	BP.RedirectOutput(File.DirApp,"log.txt")
+	Publish = "C:\laragon\www"
+	'
+	Dim Version As Long = DateTime.now
+	Dim appFile As String = $"app${Version}.js"$
+	
+	'initialize banano for first use
+	BANano.Initialize("BANano", AppName, Version)
+	BANano.HTML_NAME = "index.html"
+	BANano.Header.Title = AppName
+	BANano.JAVASCRIPT_NAME = appFile
+	BANano.TranspilerOptions.UseServiceWorker = False
+	'
+'	BANano.Header.AddJavascriptFile("fileSaver.min.js")
+'	BANano.Header.AddJavascriptFile("jszip.min.js")
+'	'BANano.Header.AddJavascriptFile("oxml.min.js")
+'	
+'	BANano.Header.AddCSSFile("bootstrapgrid.css")
+'	BANano.Header.AddCSSFile("roboto.css")
+'	BANano.Header.AddCSSFile("materialfont.css")
+'	'
+'	BANano.Header.AddJavascriptFile("vue.min.js")
+'	BANano.Header.AddJavascriptFile("vue-router.min.js")
+'	BANano.Header.AddCSSFile("vue2-animate.min.css")
+'	'BANano.Header.AddJavascriptFile("vue-focus.min.js")
+'	
+'	'
+'	BANano.Header.AddCSSFile("vue-material.min.css")
+'	BANano.Header.AddCSSFile("default.css")
+'	BANano.Header.AddCSSFile("vue-material-slider.css")
+'	BANano.Header.AddJavascriptFile("vue-material.min.js")
+'	BANano.Header.AddJavascriptFile("vue-material-slider.umd.js")
+'	'
+'	BANano.Header.AddJavascriptFile("jquery-3.4.1.min.js")
+'	'
+'	BANano.Header.AddCSSFile("info-box.css")
+'	BANano.Header.AddJavascriptFile("jquery.countTo.js")
+'	BANano.Header.AddCSSFile("helpers.css")
+'	BANano.Header.AddJavascriptFile("jquery.knob.min.js")
+'	BANano.Header.AddJavascriptFile("tron-knob.js")
+'	'
+'	'BANano.Header.AddJavascriptFile("vue-tables-2.min.js")
+'	
+'	'BANano.Header.AddJavascriptFile("jquery.sparkline.js")
+'	'BANano.Header.AddJavascriptFile("jQuery.print.min.js")
+'	'BANano.Header.AddJavascriptFile("printThis.js")
+'	
+'	'gijgo
+'	BANano.Header.AddCSSFile("core.min.css")
+'	BANano.Header.AddCSSFile("dropdown.min.css")
+'	BANano.Header.AddCSSFile("grid.min.css")
+'	BANano.Header.AddCSSFile("tree.min.css")
+'	BANano.Header.AddCSSFile("checkbox.min.css")
+'	BANano.Header.AddJavascriptFile("core.min.js")
+'	BANano.Header.AddJavascriptFile("dropdown.min.js")
+'	BANano.Header.AddJavascriptFile("checkbox.min.js")
+'	BANano.Header.AddJavascriptFile("draggable.min.js")
+'	BANano.Header.AddJavascriptFile("droppable.min.js")
+'	BANano.Header.AddJavascriptFile("tree.min.js")
+'	BANano.Header.AddJavascriptFile("grid.min.js")
+'	'
+'	BANano.Header.AddJavascriptFile("pdfmake.js")
+'	BANano.Header.AddJavascriptFile("vfs_fonts.js")
+'	BANano.Header.AddJavascriptFile("jquery.media.js")
+'	
+'	BANano.Header.AddCSSFile("print.css")
+'	BANano.Header.AddJavascriptFile("print.js")
+'	
+'	'prism
+'	BANano.Header.AddCSSFile("prism.min.css")
+'	BANano.Header.AddCSSFile("prism-line-numbers.min.css")
+'	BANano.Header.AddJavascriptFile("checkbox.min.css")
+'	BANano.Header.AddJavascriptFile("clipboard.min.js")
+'	BANano.Header.AddJavascriptFile("prism.min.js")
+'	BANano.Header.AddJavascriptFile("prism-line-numbers.min.js")
+'	BANano.Header.AddJavascriptFile("prism-vs.min.css")
+	'
+		
+	BANano.Build(Publish)
+	BP.OpenLog(File.DirApp, "log.txt")
+	
+	BP.PublishPath = Publish
+	BP.ShortName = AppName
+	BP.AssetsPath = BANano.ASSETS_FOLDER
+	BP.ScriptsPath = BANano.SCRIPTS_FOLDER
+	BP.StylesPath = BANano.STYLES_FOLDER
+	BP.ScriptFile = BANano.JAVASCRIPT_NAME
+	BP.UnzipFonts
+	BP.Open(True)
+	ExitApplication
+End Sub
+
+'Return true to allow the default exceptions handler to handle the uncaught exception.
+Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
+	Return True
+End Sub
+
+Sub BANano_Ready
+	pgPDFDesign.Init 
+End Sub

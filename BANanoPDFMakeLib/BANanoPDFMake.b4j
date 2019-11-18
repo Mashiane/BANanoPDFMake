@@ -2,7 +2,7 @@
 Build1=Default,b4j.example
 File1=jquery.media.js
 File2=jquery-3.4.1.min.js
-File3=pdfmake.js
+File3=pdfmake.min.js
 File4=upload.php
 File5=vfs_fonts.js
 FileGroup1=Default Group
@@ -14,21 +14,21 @@ Group=Default Group
 Library1=jcore
 Library2=jfx
 Library3=banano
-Module1=PDFTable
-Module10=PDFStack
-Module11=PDFParagraphs
-Module12=PDFQRCode
-Module13=PDFSecurity
-Module14=PDFImage
-Module15=PDFRow
-Module2=PDFView
-Module3=PDFMaker
-Module4=PDFText
-Module5=PDFToC
-Module6=PDFStyle
-Module7=PDFColumns
-Module8=PDFList
-Module9=PDFFooter
+Module1=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFFooter
+Module10=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFToC
+Module11=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFColumns
+Module12=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFList
+Module13=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFStack
+Module14=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFParagraphs
+Module15=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFQRCode
+Module2=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFView
+Module3=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFText
+Module4=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFImage
+Module5=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFRow
+Module6=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFMaker
+Module7=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFStyle
+Module8=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFSecurity
+Module9=|absolute|C:\Users\anelembanga\Documents\MEGA\MyApps\b4j\Shared\PDFTable
 NumberOfFiles=5
 NumberOfLibraries=3
 NumberOfModules=15
@@ -37,7 +37,7 @@ Version=7.8
 #Region Project Attributes 
 	#MergeLibraries: True
 	#LibraryAuthor: TheMash
-	#LibraryVersion: 102
+	#LibraryVersion: 105
 	#LibraryName: BANanoPDFMake
 #End Region
 
@@ -48,12 +48,12 @@ End Sub
 
 Sub AppStart (Form1 As Form, Args() As String)
 	'initialize banano for first use
-	BANano.Initialize("BANano", AppName, 101)
-	BANano.Header.AddJavascriptFile("pdfmake.js")
+	BANano.Initialize("BANano", AppName, 104)
+	BANano.Header.AddJavascriptFile("pdfmake.min.js")
 	BANano.Header.AddJavascriptFile("vfs_fonts.js")
 	BANano.Header.AddJavascriptFile("jquery-3.4.1.min.js")
 	BANano.Header.AddJavascriptFile("jquery.media.js")
-	BANano.BuildAsB4XLib("1.02")
+	BANano.BuildAsB4XLib("1.05")
 	ExitApplication
 End Sub
 
