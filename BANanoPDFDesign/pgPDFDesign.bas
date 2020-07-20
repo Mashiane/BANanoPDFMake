@@ -25,6 +25,11 @@ Sub Process_Globals
 	Private Contents As Map
 	Private newTable As VMProperty
 	Private newString As VMProperty
+	Private newQRCODE As VMProperty
+	Private newImage As VMProperty
+	Private newLink As VMProperty
+	Private tmp As PDFMaker
+	Private newList As VMProperty
 End Sub
 
 Sub ReadContents
@@ -42,7 +47,8 @@ Sub ReadStyles
 End Sub
 
 Sub Init
-	vm.Initialize(Me, "BANanoPDFDesign - WYSIWYG PDFMake")
+	tmp.Initialize
+	vm.Initialize(Me, "BANanoPDFDesign - WYSIWYG PDFMake", "BANanoPDFDesign")
 	vm.SetFontFamily("'Roboto', Arial, sans-serif")
 	vm.Drawer.SetVisible(False)
 	vm.NavBar.SetPrimary(True)
@@ -81,6 +87,7 @@ Sub Init
 	code.SetIcon("code")
 	pcode = vm.CreatePrism("pdfcode", "json")
 	code.SetText(pcode.ToString)
+	
 	'
 	Dim preview As VMTabsItem = vm.CreateTabsItem("preview").SetLabel("Preview")
 	preview.SetIcon("picture_as_pdf")
@@ -99,6 +106,10 @@ Sub Init
 	Template_Text
 	Template_Table
 	Template_String
+	Template_QRCODE
+	Template_Image
+	Template_Link
+	TemplateList
 	
 '	prop = vm.CreateProperty(Me, "propBag")
 '	Dim options As Map = CreateMap()
@@ -125,20 +136,23 @@ Sub Init
 '	grd.AddComponent(1,3,prop.ToString)
 	
 	'
-	grd.Build
 	grd.Pop(vm.Content)
 	vm.ux
 		
 	'create the tree view
 	tree.refresh
 	tree.AddNode("","1", "Document", "","chrome_reader_mode", CreateMap())
-	tree.AddNode("1", "newstring", "Add String", "", "add_circle_outline",CreateMap())
-	tree.AddNode("1", "newtext", "Add Text", "", "add_circle_outline",CreateMap())
-	tree.AddNode("1", "newtable", "Add Table", "", "add_circle_outline",CreateMap())
-	tree.AddNode("1","content", "Content", "","book", CreateMap())
 	tree.AddNode("1","default_style", "Default Syle", "","style", CreateMap())
 	tree.AddNode("1", "4", "Styles", "", "style",CreateMap())
 	tree.AddNode("4", "newstyle", "New Style", "", "add_circle_outline",CreateMap())
+	tree.AddNode("1", "newstring", "Add String", "", "add_circle_outline",CreateMap())
+	tree.AddNode("1", "newtext", "Add Text", "", "add_circle_outline",CreateMap())
+	tree.AddNode("1", "newtable", "Add Table", "", "add_circle_outline",CreateMap())
+	tree.AddNode("1", "newqrcode", "Add QRCODE", "","add_circle_outline", CreateMap())
+	tree.AddNode("1", "newimage", "Add Image", "","add_circle_outline", CreateMap())
+	tree.addnode("1", "newlink", "Add Link", "", "add_circle_outline",  CreateMap())
+	tree.addnode("1", "newlist", "Add List", "", "add_circle_outline",  CreateMap())
+	tree.AddNode("1","content", "Content", "","book", CreateMap())
 	
 	'read and load existing styles
 	ReadStyles
@@ -163,7 +177,8 @@ End Sub
 Sub AddStyleProperties(pb As VMProperty)
 	pb.AddCheck("d","bold","Bold",False)
 	pb.AddCheck("d","italics","Italics",False)
-	pb.AddRadioGroup("align", "alignment","Alignment", CreateMap("alignmentRight":"Right","alignmentCenter":"Center","alignmentJustify":"Justify"))
+	pb.AddSelect("d","alignment","Alignment","alignmentNames", _
+	CreateMap("alignmentRight":"Right","alignmentCenter":"Center","alignmentJustify":"Justify"), "id", "text")
 	pb.AddTel("d","fontSize","Font Size","","")
 	pb.AddHeading("m", "Margins")
 	pb.AddTel("m","marginleft","Margin Left","","")
@@ -220,11 +235,9 @@ End Sub
 
 'show only this template
 Sub ShowOnly(showThis As String)
-	vpdf.SetVisible(False)
-	pcode.setvisible(False)
-	showThis = showThis.tolowercase
-	'hid the document
+	vpdf.SetURL("")
 	pcode.SetText("")
+	showThis = showThis.tolowercase
 	Dim lstT As List
 	lstT.Initialize 
 	lstT.Add("template_doc")
@@ -236,6 +249,10 @@ Sub ShowOnly(showThis As String)
 	lstT.Add("newtext")
 	lstT.Add("newtable")
 	lstT.add("newstring")
+	lstT.add("newqrcode")
+	lstT.Add("newimage")
+	lstT.add("newlink")
+	lstT.add("newlist")
 	
 	For Each strT As String In lstT
 		If strT = showThis Then
@@ -252,6 +269,30 @@ Sub treev_select(e As BANanoObject, node As Object, id As String)
 	Log(id)
 	
 	Select Case id
+	Case "newlist"
+		ShowOnly("newlist")
+		newList.clear
+		Dim nDate As String = DateTime.Now
+		vm.SetStateSingle("id", nDate)
+		vm.SetStateSingle("tabindex", nDate)
+	Case "newlink"
+		ShowOnly("newlink")
+		newLink.clear
+		Dim nDate As String = DateTime.Now
+		vm.SetStateSingle("id", nDate)
+		vm.SetStateSingle("tabindex", nDate)
+	Case "newimage"
+		ShowOnly("newimage")
+		newImage.clear
+		Dim nDate As String = DateTime.Now
+		vm.SetStateSingle("id", nDate)
+		vm.SetStateSingle("tabindex", nDate)
+	Case "newqrcode"
+		ShowOnly("newqrcode")
+		newQRCODE.clear
+		Dim nDate As String = DateTime.Now
+		vm.SetStateSingle("id", nDate)
+		vm.SetStateSingle("tabindex", nDate)
 	Case "newstring"
 		ShowOnly("newString")
 		newString.Clear
@@ -332,27 +373,94 @@ Sub treev_select(e As BANanoObject, node As Object, id As String)
 			Dim rec As Map = ReadContent(id)
 			newString.Properties = rec
 			PreviewText(id, rec)
+		Case "qrcode"
+			ShowOnly("newqrcode")
+			newQRCODE.Clear
+			Dim rec As Map = ReadContent(id)
+			newQRCODE.Properties = rec
+			PreviewQRCODE(id, rec)
+		Case "image"
+			ShowOnly("newimage")
+			newImage.Clear
+			Dim rec As Map = ReadContent(id)
+			newImage.Properties = rec
+			PreviewImage(id, rec)
+		Case "link"
+			ShowOnly("newlink")
+			newLink.Clear
+			Dim rec As Map = ReadContent(id)
+			newLink.Properties = rec
+			PreviewText(id, rec)
+		Case "list"
+			ShowOnly("newlist")
+			newList.Clear
+			Dim rec As Map = ReadContent(id)
+			newList.Properties = rec
+			PreviewList(id, rec)
 		End Select
 	End Select
 End Sub
 
+
+Sub PHP_File(fNme As String) As Map
+	Dim opt As Map = CreateMap()
+	opt.put("fName", fNme)
+	Return opt
+End Sub
+
+'pass a directory name
+Sub PHP_Dir(dName As String) As Map
+	Dim opt As Map = CreateMap()
+	opt.put("dir", dName)
+	Return opt
+End Sub
+
+'write the contents of the file
+Sub PHP_WriteFile(fNme As String, fContents As String) As Map
+	Dim opt As Map = CreateMap()
+	opt.put("fName", fNme)
+	opt.Put("fContents", fContents)
+	Return opt
+End Sub
+
+#if php
+	function GetFileContents($fName){
+		$content = readfile($fName);
+		echo($content);
+	}
+	
+	function WriteFile($fName,$fContents){
+		$myfile = fopen($fName, "w") or die("Unable to open file!");
+		fwrite($myfile, $fContents);
+		fclose($myfile);
+	}
+	
+	function FileExists($fName){
+		if (file_exists($fName)) {
+    		echo "true";
+		} else {
+    		echo "false";
+		}
+	}
+	
+	function ScanDirectory($dir){
+		$a = scandir($dir);
+		echo($a);
+	}
+	
+	function DeleteFile($fName){
+		if (!unlink($fName)) {
+  			echo("success");
+		} else {
+  			echo("error");
+		}
+	}
+#End If
+
+
+
 Sub PreviewStyle(sid As String, smap As Map)
-	vpdf.SetVisible(True)
-	pcode.setvisible(True)
-	pcode.SetText("")
-	mTabs.ChangeTab("preview")
-	mTabs.ChangeTab("code")
-	mTabs.ChangeTab("preview")
-	'define file name
-	fName = $"${sid}.pdf"$
-	'read the default styles
-	Dim dstyle As Map = BANano.GetLocalStorage("defStyle")
-	'read all styles
-	ReadStyles
-	'start the document
-	maker.Initialize
-	maker.SetDefaultStyle(dstyle)
-	maker.SetStyles(AllStyles)
+	Prepare4Preview(sid)
 	Dim pText As PDFText = maker.CreateText("This is how the '" & sid & "' style will display on the document.")
 	pText.SetStyle(sid)
 	maker.AddText(pText)
@@ -375,13 +483,15 @@ Sub Template_Table
 	newTable = vm.CreateProperty(Me, "newTable")
 	newTable.SetVIf("newTable")
 	newTable.AddButton("","btnSaveTable", "Save", "saveTable")
+	newTable.AddButton("","btnDeleteTable", "Delete", "deleteTable")
+	
 	'
 	newTable.AddHeading("d", "Details")
 	newTable.AddText("d","id","ID","","")
 	newTable.AddText("d","tabindex","Tab Index","","")
-	newTable.AddRadioGroup("layout", "layout","Layout", _
-	CreateMap("lightHorizontalLines":"Light Horizontal Lines","noBorders":"No Borders","headerLineOnly":"Header Line Only", _
-	"none": "None"))
+	newTable.AddSelect("d","layout", "Layout", "layoutNames", _
+	CreateMap("lightHorizontalLines":"Light Horizontal Lines","noBorders":"No Borders","headerLineOnly":"Header Line Only", "none": "None"), "id","text")
+	
 	newTable.AddTel("d", "headerRows", "Header Rows", "","")
 	newTable.AddTextArea("d", "widths", "Widths", "")
 	newTable.AddTextArea("d", "heights", "Heights", "")
@@ -399,13 +509,138 @@ Sub Template_Table
 	newTable.AddTel("absolutePosition","absolutePositiony","Y","","")
 	newTable.AddCheck("absolutePosition","applyabsolutePosition","Apply",False)
 	'
-	newTable.AddRadioGroup("pageOrientation", "pageOrientation","Page Orientation", _
-	CreateMap("potrait":"Potrait","landscape":"Landscape"))
+	newTable.AddSelect("","pageOrientation", "Page Orientation", "pageOrientationNames", _
+	CreateMap("potrait":"Potrait","landscape":"Landscape"),"id","text")
 	'
-	newTable.AddRadioGroup("pageBreak", "pageBreak","Page Break", _
-	CreateMap("pageBreakBefore":"Before","pageBreakAfter":"After","none":"None"))
+	newTable.AddSelect("", "pageBreak", "Page Break", "pageBreakNames", _
+	CreateMap("pageBreakBefore":"Before","pageBreakAfter":"After","none":"None"),"id","text")
 	
 	grd.AddComponent(1,3, newTable.ToString)
+End Sub
+'
+Sub saveList(e As BANanoEvent)
+	Dim rec As Map = newList.Properties
+	'the type of record this is
+	rec.Put("typeof", "list")
+	Dim sid As String = rec.Get("id")
+	If sid = "" Then
+		vm.ShowSnackBar("Please enter a unique ID for the list!")
+		Return
+	End If
+	SaveContent(sid, rec)
+	PreviewList(sid, rec)
+End Sub
+
+
+Sub saveQRCODE(e As BANanoEvent)
+	Dim rec As Map = newQRCODE.Properties
+	'the type of record this is
+	rec.Put("typeof", "qrcode")
+	Dim sid As String = rec.Get("id")
+	If sid = "" Then
+		vm.ShowSnackBar("Please enter a unique ID for the qrcode!")
+		Return
+	End If
+	SaveContent(sid, rec)
+	PreviewQRCODE(sid, rec)
+End Sub
+
+Sub SaveContent(sid As String, rec As Map)
+	ReadContents
+	Contents.Put(sid, rec)
+	'save to localstorage
+	Dim contentJSON As String = BANano.ToJson(Contents)
+	BANano.SetLocalStorage("bananopdf_content", contentJSON)
+	ReadContents
+	LoadContents
+End Sub
+
+Sub saveImage(e As BANanoEvent)
+	Dim rec As Map = newImage.Properties
+	'the type of record this is
+	rec.Put("typeof", "image")
+	Dim sid As String = rec.Get("id")
+	If sid = "" Then
+		vm.ShowSnackBar("Please enter a unique ID for the image!")
+		Return
+	End If
+	SaveContent(sid, rec)
+	PreviewImage(sid, rec)
+End Sub
+
+Sub deleteText(e As BANanoEvent)
+	Dim rec As Map = newText.Properties
+	Dim sid As String = rec.Get("id")
+	If sid = "" Then
+		vm.ShowSnackBar("Please enter a unique ID for the text!")
+		Return
+	End If
+	DeleteContent(sid)
+End Sub
+
+Sub deleteLink(e As BANanoEvent)
+	Dim rec As Map = newLink.Properties
+	Dim sid As String = rec.Get("id")
+	If sid = "" Then
+		vm.ShowSnackBar("Please enter a unique ID for the link!")
+		Return
+	End If
+	DeleteContent(sid)
+End Sub
+
+
+Sub deleteImage(e As BANanoEvent)
+	Dim rec As Map = newImage.Properties
+	Dim sid As String = rec.Get("id")
+	If sid = "" Then
+		vm.ShowSnackBar("Please enter a unique ID for the image!")
+		Return
+	End If
+	DeleteContent(sid)
+End Sub
+
+Sub deleteString(e As BANanoEvent)
+	Dim rec As Map = newString.Properties
+	Dim sid As String = rec.Get("id")
+	If sid = "" Then
+		vm.ShowSnackBar("Please enter a unique ID for the string!")
+		Return
+	End If
+	DeleteContent(sid)
+End Sub
+'
+'Sub deleteList(e As BANanoEvent)
+'	Dim rec As Map = newList.Properties
+'	Dim sid As String = rec.Get("id")
+'	If sid = "" Then
+'		vm.ShowSnackBar("Please enter a unique ID for the list!")
+'		Return
+'	End If
+'	DeleteContent(sid)
+'End Sub
+
+
+Sub deleteQRCODE(e As BANanoEvent)
+	Dim rec As Map = newQRCODE.Properties
+	Dim sid As String = rec.Get("id")
+	If sid = "" Then
+		vm.ShowSnackBar("Please enter a unique ID for the QR code!")
+		Return
+	End If
+	DeleteContent(sid)
+End Sub
+
+Sub DeleteContent(cid As String)
+	vpdf.seturl("")
+	pcode.SetText("")
+	newImage.clear
+	ReadContents
+	Contents.Remove(cid)
+	'save to localstorage
+	Dim contentJSON As String = BANano.ToJson(Contents)
+	BANano.SetLocalStorage("bananopdf_content", contentJSON)
+	ReadContents
+	LoadContents
 End Sub
 
 Sub saveTable(e As BANanoEvent)
@@ -417,44 +652,31 @@ Sub saveTable(e As BANanoEvent)
 		vm.ShowSnackBar("Please enter a unique ID for the table!")
 		Return
 	End If
-	ReadContents
-	Contents.Put(sid, rec)
-	'save to localstorage
-	Dim contentJSON As String = BANano.ToJson(Contents)
-	BANano.SetLocalStorage("bananopdf_content", contentJSON)
-	ReadContents
-	'load
-	LoadContents
+	SaveContent(sid, rec)
 	PreviewTable(sid, rec)
 End Sub
 
 Sub PreviewTable(sid As String, smap As Map)
-	vpdf.SetVisible(True)
-	pcode.setvisible(True)
-	pcode.SetText("")
-	'hide the document
-	mTabs.ChangeTab("preview")
-	mTabs.ChangeTab("code")
-	mTabs.ChangeTab("preview")
-	'define file name
-	fName = $"${sid}.pdf"$
-	'read the default styles
-	Dim dstyle As Map = BANano.GetLocalStorage("defStyle")
-	'read all styles
-	ReadStyles
-	'start the document
-	maker.Initialize
-	maker.SetDefaultStyle(dstyle)
-	maker.SetStyles(AllStyles)
+	Prepare4Preview(sid)
 	Dim pTable As PDFTable = GetTable(smap)
 	maker.AddTable(pTable)
 	maker.Upload(Me, "doUpload", fName)
 End Sub
+'
+Sub PreviewList(sid As String, smap As Map)
+	Prepare4Preview(sid)
+	Dim pList As PDFList = GetList(smap)
+	maker.AddList(pList)
+	maker.Upload(Me, "doUpload", fName)
+End Sub
+
 
 Sub Template_String
 	newString = vm.CreateProperty(Me, "newString")
 	newString.SetVIf("newstring")
 	newString.AddButton("","btnSaveString", "Save", "saveString")
+	newString.AddButton("","btnDeleteString", "Delete", "deleteString")
+	
 	'
 	newString.AddText("","id","ID","","")
 	newString.AddText("","tabindex","Tab Index","","")
@@ -464,10 +686,288 @@ Sub Template_String
 
 End Sub
 
+Sub Template_Link
+	newLink = vm.CreateProperty(Me, "newLink")
+	newLink.SetVIf("newLink")
+	newLink.AddButton("","btnSaveLink", "Save", "saveLink")
+	newLink.AddButton("","btnDeleteLink", "Delete", "deleteLink")
+	
+	'
+	newLink.AddText("","id","ID","","")
+	newLink.AddText("","tabindex","Tab Index","","")
+	newLink.AddTextArea("", "text", "Text", "")
+	'
+	newLink.AddText("", "link", "Link", "", "")
+	newLink.AddTel("","linkToPage", "Link To Page", "", "")
+	newLink.AddText("", "linkToDestination", "Link To Destination", "","")
+	newLink.AddText("", "pageReference", "Page Reference", "","")
+	newLink.AddText("", "textReference", "Text Reference","","")
+	
+	newLink.AddSelect("","styledecoration","Decoration","decoNames", _
+	CreateMap("underline":"Underline","overline":"Overline","lineThrough":"Line Through","none":"None"), "id", "text")
+	newLink.AddSelect("","styledecorationStyle","Decoration Style","decoStyle", _
+	CreateMap("solid":"Solid","double":"Double","dashed":"Dashed","dotted":"Dotted","wavy":"Wavy","none":"None"),"id","text")
+	newLink.AddText("","styledecorationColor","Decoration Color","","")
+	
+	grd.AddComponent(1,3, newLink.ToString)
+
+End Sub
+
+
+Sub Template_QRCODE
+	newQRCODE = vm.CreateProperty(Me, "newQRCODE")
+	newQRCODE.SetVIf("newQRCODE")
+	newQRCODE.AddButton("","btnSaveQRCODE", "Save", "saveQRCODE")
+	newQRCODE.AddButton("","btnDeleteQRCODE", "Delete", "deleteQRCODE")
+	
+	'
+	newQRCODE.AddText("","id","ID","","")
+	newQRCODE.AddText("","tabindex","Tab Index","","")
+	newQRCODE.AddText("","qr","QR","","")
+	newQRCODE.AddText("","foreground","Foreground","","")
+	newQRCODE.AddText("","background","Background","","")
+	newQRCODE.AddTel("","fit","Fit","","")
+	newQRCODE.AddSelect("", "mode", "Mode", "modeName", _
+	CreateMap("modeNumeric":"Numeric","modeAlphanumeric":"Alphanumeric", _
+	"modeOctet":"Octect"), "id", "text")
+	newQRCODE.AddSelect("", "eccLevel", "Ecc Level", "eccLevelName", _
+	CreateMap("eccLevelL":"Low","eccLevelM":"Medium", _
+	"eccLevelQ":"Quality","eccLevelH":"High"), "id", "text")
+	'
+	NormalThings(newQRCODE)
+	
+	grd.AddComponent(1,3, newQRCODE.ToString)
+End Sub
+'
+Sub TemplateList
+	newList = vm.CreateProperty(Me, "newList")
+	newList.SetVIf("newList")
+	newList.AddButton("","btnSaveList", "Save", "saveList")
+	newList.AddButton("","btnDeleteList", "Delete", "deleteList")
+	'
+	newList.AddText("","id","ID","","")
+	newList.AddText("","tabindex","Tab Index","","")
+	newList.AddSelect("", "listtype", "List Type", "listtypeMame", CreateMap("ul":"Unordered List","ol":"Ordered List"), "id", "text")
+	newList.AddSelect("", "listStyle", "List Style", "ListStyleName", _
+	CreateMap("square":"Square","circle":"Circle","lowerAlpha":"Lower Alpha", _
+	"upperAlpha":"Upper Alpha","upperRoman":"Upper Roman","lowerRoman":"Lower Roman","none":"None"), "id", "text")
+	newList.addtextarea("","items","Items (;)","")
+	newList.AddTextArea("","counter","Counter (;)","")
+	newList.AddTextArea("", "childlistType", "Child List Type (;)", "")
+	newList.AddCheck("","reversed","Reversed",False)
+	newList.AddTel("","start","Start","","")
+	newList.AddText("","color","Color","","")
+	newList.addText("","markerColor", "Marker Color", "","")
+	newList.AddText("", "separator","Separator","","")
+	'
+	NormalThings(newList)
+	grd.AddComponent(1,3, newList.ToString)
+	
+End Sub
+
+
+Sub Template_Image
+	newImage = vm.CreateProperty(Me, "newImage")
+	newImage.SetVIf("newImage")
+	newImage.AddButton("","btnSaveImage", "Save", "saveImage")
+	newImage.AddButton("","btnDeleteImage", "Delete", "deleteImage")
+	'
+	newImage.AddText("","id","ID","","")
+	newImage.AddText("","tabindex","Tab Index","","")
+	newImage.AddText("","url","URL","","")
+	newImage.AddTel("","opacity","Opacity","","")
+	'
+	newImage.AddTel("","width","Width","","")
+	newImage.AddTel("","height","Height","","")
+	newImage.AddCheck("","fit", "Fit", False)
+	newImage.AddText("", "link", "Link", "", "")
+	
+	NormalThings(newImage)
+	newImage.AddDoubles(Array("opacity"))
+	grd.AddComponent(1,3, newImage.ToString)
+	
+End Sub
+
+Sub NormalThings(propBag As VMProperty)
+	propBag.AddHeading("margings", "Margins")
+	propBag.AddTel("margings","marginleft","Margin Left","","")
+	propBag.AddTel("margings","margintop","Margin Top","","")
+	propBag.AddTel("margings","marginright","Margin Right","","")
+	propBag.AddTel("margings","marginbottom","Margin Bottom","","")
+	propBag.AddCheck("margings","applymargins","Apply Margins",False)
+	'
+	propBag.AddHeading("absolutePosition", "Absolute Position")
+	propBag.AddTel("absolutePosition","absolutePositionx","X","","")
+	propBag.AddTel("absolutePosition","absolutePositiony","Y","","")
+	propBag.AddCheck("absolutePosition","applyabsolutePosition","Apply",False)
+	'
+	propBag.AddSelect("","pageOrientation", "Page Orientation", "pageOrientationNames", _
+	CreateMap("potrait":"Potrait","landscape":"Landscape"),"id","text")
+	'
+	propBag.AddSelect("", "pageBreak", "Page Break", "pageBreakNames", _
+	CreateMap("pageBreakBefore":"Before","pageBreakAfter":"After","none":"None"),"id","text")
+End Sub
+
+Sub GetQRCODE(rec As Map) As PDFQRCode
+	Dim sid As String = rec.Get("id")
+	Dim stabindex As String = rec.Get("tabindex")
+	Dim sqr As String = rec.Get("qr")
+	Dim sforeground As String = rec.Get("foreground")
+	Dim sbackground As String = rec.Get("background")
+	Dim sfit As Int = rec.Get("fit")
+	Dim smode As String = rec.Get("mode")
+	Dim seccLevel As String = rec.Get("eccLevel")
+	Dim spageOrientation As String = rec.Get("pageOrientation")
+	Dim spageBreak As String = rec.Get("pageBreak")
+	Dim imarginleft As Int = rec.Get("marginleft")
+	Dim imargintop As Int = rec.Get("margintop")
+	Dim imarginright As Int = rec.Get("marginright")
+	Dim imarginbottom As Int = rec.Get("marginbottom")
+	Dim bapplymargins As Boolean = rec.Get("applymargins")
+	Dim iabsolutePositionx As String = rec.Get("absolutePositionx")
+	Dim iabsolutePositiony As String = rec.Get("absolutePositiony")
+	Dim bapplyabsolutePosition As Boolean = rec.Get("applyabsolutePosition")
+	If spageBreak = "none" Then spageBreak = ""
+	'
+	Dim qrcode As PDFQRCode
+	qrcode.Initialize 
+	qrcode.qr = sqr
+	If sbackground <> "" Then qrcode.background = sbackground
+	If sforeground <> "" Then qrcode.foreground = sforeground
+	If sfit > 0 Then qrcode.fit = sfit
+	Select Case smode
+		Case "modeNumeric"
+			qrcode.modeNumeric = True
+		Case "modeAlphanumeric"
+			qrcode.modeAlphanumeric = True
+		Case "modeOctet"
+			qrcode.modeOctet = True
+	End Select
+	If bapplyabsolutePosition Then qrcode.SetAbsolutePosition(iabsolutePositionx, iabsolutePositiony)
+	qrcode.SetPageOrientation(spageOrientation)
+	If spageBreak = "pageBreakBefore" Then qrcode.SetPageBreakBefore
+	If spageBreak = "pageBreakAfter" Then qrcode.SetPageBreakAfter
+	If bapplymargins Then
+		qrcode.SetMargin(imarginleft, imargintop, imarginright, imarginbottom)
+	End If
+	Select Case seccLevel
+		Case "eccLevelL"
+			qrcode.eccLevelL = True
+		Case "eccLevelM"
+			qrcode.eccLevelM = True
+		Case "eccLevelQ"
+			qrcode.eccLevelQ = True
+		Case "eccLevelH"
+			qrcode.eccLevelH = True
+	End Select
+	Return qrcode
+End Sub
+'
+Sub GetList(rec As Map) As PDFList
+	Dim sid As String = rec.Get("id")
+	Dim stabindex As String = rec.Get("tabindex")
+	Dim listtype As String = rec.get("listtype")
+	Dim sListStyle As String = rec.Get("listStyle")
+	'
+	Dim sitems As String = rec.Get("items")
+	Dim schildlistType As String = rec.Get("childlistType")
+	Dim scounter As String = rec.Get("counter")
+	'
+	Dim spageOrientation As String = rec.Get("pageOrientation")
+	Dim spageBreak As String = rec.Get("pageBreak")
+	Dim imarginleft As Int = rec.Get("marginleft")
+	Dim imargintop As Int = rec.Get("margintop")
+	Dim imarginright As Int = rec.Get("marginright")
+	Dim imarginbottom As Int = rec.Get("marginbottom")
+	Dim bapplymargins As Boolean = rec.Get("applymargins")
+	Dim iabsolutePositionx As String = rec.Get("absolutePositionx")
+	Dim iabsolutePositiony As String = rec.Get("absolutePositiony")
+	Dim bapplyabsolutePosition As Boolean = rec.Get("applyabsolutePosition")
+	Dim breversed As Boolean = rec.get("reversed")
+	Dim istart As Int = rec.get("start")
+	Dim scolor As String = rec.Get("color")
+	Dim smarkerColor As String = rec.Get("markerColor")
+	Dim sseparator As String = rec.Get("separator")
+	
+	If spageBreak = "none" Then spageBreak = ""
+	sListStyle = sListStyle.Replace("lowerAlpha","lower-alpha")
+	sListStyle = sListStyle.Replace("upperAlpha","upper-alpha")
+	sListStyle = sListStyle.Replace("upper-roman","upper-roman")
+	sListStyle = sListStyle.Replace("lowerRoman","lower-roman")
+	
+	'
+	Dim lst As PDFList
+	lst.Initialize(listtype)
+	If sListStyle <> "" Then lst.Style = sListStyle
+	If breversed Then lst.reversed = breversed
+	If istart > 0 Then lst.start = istart
+	If scolor <> "" Then lst.color = scolor
+	If smarkerColor <> "" Then lst.markerColor = smarkerColor
+	If sseparator <> "" Then lst.separator = sseparator
+	If bapplyabsolutePosition Then lst.SetAbsolutePosition(iabsolutePositionx, iabsolutePositiony)
+	lst.SetPageOrientation(spageOrientation)
+	If spageBreak = "pageBreakBefore" Then lst.SetPageBreakBefore
+	If spageBreak = "pageBreakAfter" Then lst.SetPageBreakAfter
+	If bapplymargins Then
+		lst.SetMargin(imarginleft, imargintop, imarginright, imarginbottom)
+	End If
+	Return lst
+End Sub
+
+
+
+Sub GetImage(rec As Map) As PDFImage
+	Dim sid As String = rec.Get("id")
+	Dim stabindex As String = rec.Get("tabindex")
+	Dim surl As String = rec.Get("url")
+	Dim iopacity As Double = rec.Get("opacity")
+	Dim iwidth As Int = rec.Get("width")
+	Dim iheight As Int = rec.Get("height")
+	Dim bfit As Boolean = rec.Get("fit")
+	Dim spageOrientation As String = rec.Get("pageOrientation")
+	Dim spageBreak As String = rec.Get("pageBreak")
+	Dim imarginleft As Int = rec.Get("marginleft")
+	Dim imargintop As Int = rec.Get("margintop")
+	Dim imarginright As Int = rec.Get("marginright")
+	Dim imarginbottom As Int = rec.Get("marginbottom")
+	Dim bapplymargins As Boolean = rec.Get("applymargins")
+	Dim iabsolutePositionx As Int = rec.Get("absolutePositionx")
+	Dim iabsolutePositiony As Int = rec.Get("absolutePositiony")
+	Dim bapplyabsolutePosition As Boolean = rec.Get("applyabsolutePosition")
+	If spageBreak = "none" Then spageBreak = ""
+	'
+	Dim img As PDFImage
+	img.Initialize 
+	img.SetImage(sid)
+	If bfit Then
+		img.SetFit(iwidth, iheight)
+	Else
+		img.SetWidth(iwidth)
+		img.SetHeight(iheight)
+	End If
+	If iopacity > 0 Then img.SetOpacity(iopacity)
+	If bapplyabsolutePosition Then 
+		img.SetAbsolutePosition(iabsolutePositionx, iabsolutePositiony)
+	End If
+	img.SetPageOrientation(spageOrientation)
+	If spageBreak = "pageBreakBefore" Then 
+		img.SetPageBreakBefore
+	End If
+	If spageBreak = "pageBreakAfter" Then 
+		img.SetPageBreakAfter
+	End If
+	If bapplymargins Then
+		img.SetMargin(imarginleft, imargintop, imarginright, imarginbottom)
+	End If
+	Return img
+End Sub
+
 Sub Template_Text
 	newText = vm.CreateProperty(Me, "newText")
 	newText.SetVIf("newText")
 	newText.AddButton("","btnSaveText", "Save", "saveText")
+	newText.AddButton("","btnDeleteText", "Delete", "deleteText")
+	
 	'
 	newText.AddHeading("d", "Details")
 	newText.AddText("d","id","ID","","")
@@ -479,7 +979,8 @@ Sub Template_Text
 	newText.AddHeading("style", "Style")
 	newText.AddCheck("style","stylebold","Bold",False)
 	newText.AddCheck("style","styleitalics","Italics",False)
-	newText.AddRadioGroup("align", "alignment","Alignment", CreateMap("alignmentRight":"Right","alignmentCenter":"Center","alignmentJustify":"Justify"))
+	newText.AddSelect("style","alignment","Alignment","alignmentNames", _
+	CreateMap("alignmentRight":"Right","alignmentCenter":"Center","alignmentJustify":"Justify"), "id", "text")
 	newText.AddTel("style","stylefontSize","Font Size","","")
 	newText.AddHeading("margings", "Margins")
 	newText.AddTel("margings","stylemarginleft","Margin Left","","")
@@ -495,12 +996,6 @@ Sub Template_Text
 	newText.AddTel("style","styleopacity","Opacity","","")
 	newText.AddTel("style","styleangle","Angle","","")
 	newText.AddTel("style","stylecolumnGap","Column Gap","","")
-	newText.AddHeading("dec", "Decoration")
-	newText.AddSelect("dec","decoration","Decoration","decoNames", _
-	CreateMap("underline":"Underline","overline":"Overline","lineThrough":"Line Through","none":"None"), "id", "text")
-	newText.AddSelect("dec","decorationStyle","Decoration Style","decoStyle", _
-	CreateMap("solid":"Solid","double":"Double","dashed":"Dashed","dotted":"Dotted","wavy":"Wavy","none":"None"),"id","text")
-	newText.AddText("dec","styledecorationColor","Decoration Color","","")
 		
 	newText.AddHeading("absolutePosition", "Absolute Position")
 	newText.AddTel("absolutePosition","absolutePositionx","X","","")
@@ -514,11 +1009,11 @@ Sub Template_Text
 	newText.AddCheck("relativePosition","applyrelativePosition","Apply",False)
 	
 	'
-	newText.AddRadioGroup("pageOrientation", "pageOrientation","Page Orientation", _
-	CreateMap("potrait":"Potrait","landscape":"Landscape"))
+	newText.AddSelect("d","pageOrientation", "Page Orientation", "pageOrientationNames", _
+	CreateMap("potrait":"Potrait","landscape":"Landscape"),"id","text")
 	'
-	newText.AddRadioGroup("pageBreak", "pageBreak","Page Break", _
-	CreateMap("pageBreakBefore":"Before","pageBreakAfter":"After","none":"None"))
+	newText.AddSelect("d", "pageBreak", "Page Break", "pageBreakNames", _
+	CreateMap("pageBreakBefore":"Before","pageBreakAfter":"After","none":"None"),"id","text")
 	'
 	newText.AddHeading("toc", "Table of Contents")
 	newText.AddCheck("toc", "tocItem", "ToC Item", False)
@@ -551,22 +1046,28 @@ Sub Template_Text
 	newText.AddText("borderColor","borderColorright","Right","","")
 	newText.AddText("borderColor","borderColorbottom","Bottom","","")
 	newText.AddCheck("borderColor","applyborderColor","Apply",False)
-	
-	'
-	newText.AddHeading("link", "Link")
-	newText.AddText("link", "link", "Link", "", "")
-	newText.AddText("link","linkToPage", "Link To Page", "", "")
-	newText.AddText("link", "linkToDestination", "Link To Destination", "","")
-	newText.AddText("link", "pageReference", "Page Reference", "","")
-	newText.AddText("link", "textReference", "Text Reference","","")
-	'
-	
 	grd.AddComponent(1,3, newText.ToString)
 End Sub
 
-Sub PreviewText(sid As String, smap As Map)
-	vpdf.SetVisible(True)
-	pcode.setvisible(True)
+
+Sub PreviewQRCODE(sid As String, smap As Map)
+	Prepare4Preview(sid)
+	Dim pQRCODE As PDFQRCode = GetQRCODE(smap)
+	maker.AddQRCode(pQRCODE)
+	maker.Upload(Me, "doUpload", fName)
+End Sub
+
+Sub PreviewImage(sid As String, smap As Map)
+	Dim pImage As PDFImage = GetImage(smap)
+	Prepare4Preview(sid)
+	Dim surl As String = smap.Get("url")
+	maker.Preload(sid, surl)
+	maker.AddImage(pImage)
+	maker.Upload(Me, "doUpload", fName)
+End Sub
+
+Sub Prepare4Preview(sid As String)
+	vpdf.SetURL("")
 	pcode.SetText("")
 	'hide the document
 	mTabs.ChangeTab("preview")
@@ -582,6 +1083,10 @@ Sub PreviewText(sid As String, smap As Map)
 	maker.Initialize
 	maker.SetDefaultStyle(dstyle)
 	maker.SetStyles(AllStyles)
+End Sub
+
+Sub PreviewText(sid As String, smap As Map)
+	Prepare4Preview(sid)
 	Dim pText As PDFText = GetText(smap)
 	maker.AddText(pText)
 	maker.Upload(Me, "doUpload", fName)
@@ -672,7 +1177,7 @@ Sub GetText(rec As Map) As PDFText
 	Dim sborderColorright As String = rec.Get("borderColorright")
 	Dim sborderColorbottom As String = rec.Get("borderColorbottom")
 	Dim slink As String = rec.Get("link")
-	Dim slinkToPage As String = rec.Get("linkToPage")
+	Dim slinkToPage As Int = rec.Get("linkToPage")
 	Dim slinkToDestination As String = rec.Get("linkToDestination")
 	Dim spageReference As String = rec.Get("pageReference")
 	Dim stextReference As String = rec.Get("textReference")
@@ -730,6 +1235,9 @@ Sub GetText(rec As Map) As PDFText
 	ptext.SetpageReference(spageReference)
 	ptext.SettextReference(stextReference)
 	ptext.Setid(sid)
+	ptext.SetDecoration(decoration)
+	ptext.SetDecorationStyle(decorationStyle)
+	ptext.SetDecorationColor(decorationColor)
 	'apply style
 	ptext.style.SetBold(bold)
 	ptext.style.SetItalics(italics)
@@ -760,9 +1268,6 @@ Sub GetText(rec As Map) As PDFText
 	ptext.style.SetOpacity(opacity)
 	ptext.style.SetAngle(angle)
 	ptext.style.SetColumnGap(columnGap)
-	ptext.style.SetDecoration(decoration)
-	ptext.style.SetDecorationStyle(decorationStyle)
-	ptext.style.SetDecorationColor(decorationColor)
 	Return ptext
 End Sub
 
@@ -775,14 +1280,7 @@ Sub saveString(e As BANanoEvent)
 		vm.ShowSnackBar("Please enter a unique ID for the text!")
 		Return
 	End If
-	ReadContents
-	Contents.Put(sid, rec)
-	'save to localstorage
-	Dim contentJSON As String = BANano.ToJson(Contents)
-	BANano.SetLocalStorage("bananopdf_content", contentJSON)
-	ReadContents
-	'load
-	LoadContents
+	SaveContent(sid, rec)
 	PreviewText(sid, rec)
 End Sub
 
@@ -795,70 +1293,22 @@ Sub saveText(e As BANanoEvent)
 		vm.ShowSnackBar("Please enter a unique ID for the text!")
 		Return
 	End If
-	ReadContents
-	Contents.Put(sid, rec)
-	'save to localstorage
-	Dim contentJSON As String = BANano.ToJson(Contents)
-	BANano.SetLocalStorage("bananopdf_content", contentJSON)
-	ReadContents
-	'load
-	LoadContents
+	SaveContent(sid, rec)
 	PreviewText(sid, rec)
 End Sub
 
-Sub PageSizes As Map
-	Dim ps As List
-	ps.Initialize
-	ps.Add("4A0")
-	ps.Add("2A0")
-	ps.Add("A0")
-	ps.Add("A1")
-	ps.Add("A2")
-	ps.Add("A3")
-	ps.Add("A4")
-	ps.Add("A5")
-	ps.Add("A6")
-	ps.Add("A7")
-	ps.Add("A8")
-	ps.Add("A9")
-	ps.Add("A10")
-	ps.Add("B0")
-	ps.Add("B1")
-	ps.Add("B2")
-	ps.Add("B3")
-	ps.Add("B4")
-	ps.Add("B5")
-	ps.Add("B6")
-	ps.Add("B7")
-	ps.Add("B8")
-	ps.Add("B9")
-	ps.Add("B10")
-	ps.Add("C0")
-	ps.Add("C1")
-	ps.Add("C2")
-	ps.Add("C3")
-	ps.Add("C4")
-	ps.Add("C5")
-	ps.Add("C6")
-	ps.Add("C7")
-	ps.Add("C8")
-	ps.Add("C9")
-	ps.Add("C10")
-	ps.Add("RA0")
-	ps.Add("RA1")
-	ps.Add("RA2")
-	ps.Add("RA3")
-	ps.Add("RA4")
-	ps.Add("SRA0")
-	ps.Add("SRA1")
-	ps.Add("SRA2")
-	ps.Add("SRA3")
-	ps.Add("SRA4")
-	ps.Add("EXECUTIVE")
-	ps.Add("FOLIO")
-	ps.Add("LEGAL")
-	ps.Add("LETTER")
-	ps.Add("TABLOID")
+Sub saveLink(e As BANanoEvent)
+	Dim rec As Map = newLink.Properties
+	'
+	'the type of record this is
+	rec.Put("typeof", "link")
+	Dim sid As String = rec.Get("id")
+	If sid = "" Then
+		vm.ShowSnackBar("Please enter a unique ID for the link!")
+		Return
+	End If
+	SaveContent(sid, rec)
+	PreviewText(sid, rec)
 End Sub
 
 Sub Template_Document
@@ -875,11 +1325,11 @@ Sub Template_Document
 	doc.AddText("d", "producer", "Producer", "","")
 	doc.AddCheck("d", "compress", "Compress", True)
 	'
-	doc.AddRadioGroup("orient", "pageOrientation","Page Orientation", _
-	CreateMap("potrait":"Potrait","lanscape":"Landscape"))
-	'Public pageSize As String
-	'Public pageOrientation As String
+	doc.AddSelect("d","pageOrientation", "Page Orientation", "pageOrientationNames", _
+	CreateMap("potrait":"Potrait","landscape":"Landscape"),"id","text")
 	
+	'Public pageOrientation As String
+	doc.AddSelect("d", "pageSize", "Page Size", "pageSizeNames", tmp.PageSizes, "id", "text")
 	doc.AddHeading("sec", "Security & Permissions")
 	doc.AddText("sec", "userPassword", "User Password", "","")
 	doc.AddText("sec", "ownerPassword", "Owner Password", "","")
@@ -889,9 +1339,8 @@ Sub Template_Document
 	doc.AddCheck("sec", "fillingForms", "Filling Forms",True)
 	doc.AddCheck("sec", "contentAccessibility", "Content Accessibility",False)
 	doc.AddCheck("sec", "documentAssembly", "Document Assembly",False)
-	doc.AddLabel("d","Printing")
-	doc.AddRadio("d", "printing", "highResolution", "High Resolution")
-	doc.AddRadio("d", "printing", "lowResolution", "Low Resolution")
+	doc.AddSelect("sec","printing","Printing","printingNames", _
+	CreateMap("highResolution":"High Resolution","lowResolution":"Low Resolution"), "id", "text")
 	
 	doc.AddButton("","btnCompile", "Compile", "onCompile")
 	grd.AddComponent(1,3,doc.ToString)
@@ -906,11 +1355,13 @@ Sub Template_Style
 	style.AddText("d","name","Name","","")
 	AddStyleProperties(style)
 	style.AddButton("","btnSaveStyle", "Save", "onSaveStyle")
+	style.AddButton("","btnDeleteStyle", "Delete", "deleteStyle")
 	style.AddDoubles(Array("opacity"))
 	grd.AddComponent(1,3,style.ToString)
 End Sub
 
 Sub onSaveStyle(e As BANanoEvent)
+	vpdf.SetURL("")
 	Dim rec As Map = style.Properties
 	Dim sname As String = rec.Get("name")
 	If sname = "" Then 
@@ -926,13 +1377,32 @@ Sub onSaveStyle(e As BANanoEvent)
 	BANano.SetLocalStorage("bananopdf_styles", styleJSON)
 	ReadStyles
 	LoadStyles
-	'current style
 	PreviewStyle(sname, rec)
 End Sub
 
+Sub deleteStyle(e As BANanoEvent)
+	Dim rec As Map = style.Properties
+	Dim sid As String = rec.Get("name")
+	If sid = "" Then
+		vm.ShowSnackBar("Please enter a name for the style!")
+		Return
+	End If
+	vpdf.seturl("")
+	pcode.SetText("")
+	style.clear
+	ReadStyles
+	AllStyles.Remove(sid)
+	'save to localstorage
+	Dim contentJSON As String = BANano.ToJson(AllStyles)
+	BANano.SetLocalStorage("bananopdf_styles", contentJSON)
+	ReadStyles
+	LoadStyles
+End Sub
+
+
+
 Sub CompileDoc
-	vpdf.SetVisible(True)
-	pcode.setvisible(True)
+	vpdf.SetURL("")
 	pcode.SetText("")
 	Dim docprops As Map = BANano.GetLocalStorage("pdfdoc")
 	If docprops.IsInitialized Then
@@ -967,9 +1437,18 @@ Sub CompileDoc
 		Case "table"
 			Dim pTable As PDFTable = GetTable(rec)
 			maker.AddTable(pTable)
-		Case "text", "string"
+		Case "text", "string", "link"
 			Dim pText As PDFText = GetText(rec)
 			maker.addtext(pText)	
+		Case "qrcode"
+			Dim pQRCODE As PDFQRCode = GetQRCODE(rec)
+			maker.AddQRCode(pQRCODE)
+		Case "image"
+			Dim sid As String = rec.get("id")
+			Dim surl As String = rec.get("url")
+			maker.Preload(sid, surl)
+			Dim pImage As PDFImage = GetImage(rec)
+			maker.AddImage(pImage)
 		End Select
 	Next
 	maker.Upload(Me, "doUpload", fName)
@@ -978,6 +1457,7 @@ End Sub
 
 Sub onCompile(e As BANanoEvent)
 	'hide the document
+	vpdf.SetURL("")
 	pcode.settext("")
 	Dim docprops As Map = doc.Properties
 	fName = docprops.Get("filename")
@@ -993,10 +1473,6 @@ End Sub
 
 	
 Sub doUpload(fd As BANanoObject)
-	vpdf.SetVisible(True)
-	pcode.setvisible(True)
-	pcode.SetText("")
-	
 	Dim res As Map = BANano.FromJson(BANano.CallAjaxWait("./assets/upload.php", "POST", "application/pdf", fd, False, Null))
 	Dim status As String = res.Get("status")
 	Select Case status

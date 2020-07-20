@@ -4,6 +4,6 @@ ModuleBreakpoints0=
 ModuleBreakpoints1=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
-NavigationStack=pgPDFDesign,Template_String,449,0,Main,AppStart,29,0,pgPDFDesign,onCompile,985,0,pgPDFDesign,doUpload,989,2,pgPDFDesign,PreviewText,562,0,pgPDFDesign,PreviewTable,426,0,pgPDFDesign,PreviewStyle,333,0,pgPDFDesign,ShowOnly,216,4,pgPDFDesign,Init,40,0,pgPDFDesign,CompileDoc,930,0,pgPDFDesign,onSaveStyle,919,0
+NavigationStack=pgPDFDesign,TemplateList,749,6,pgPDFDesign,PreviewList,662,0,pgPDFDesign,GetImage,918,0,pgPDFDesign,GetList,900,6,pgPDFDesign,Process_Globals,25,0,pgPDFDesign,AddStyleProperties,173,0,pgPDFDesign,Template_DefaultStyle,162,0,pgPDFDesign,Init,148,2,Main,Process_Globals,9,0,Main,AppStart,21,0,pgPDFDesign,PHP_WriteFile,418,0
 SelectedBuild=0
 VisibleModules=

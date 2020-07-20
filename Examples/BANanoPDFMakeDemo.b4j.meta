@@ -1,12 +1,9 @@
 ﻿ModuleBookmarks0=
 ModuleBookmarks1=
-ModuleBookmarks2=
 ModuleBreakpoints0=
 ModuleBreakpoints1=
-ModuleBreakpoints2=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
-ModuleClosedNodes2=
-NavigationStack=Main,Process_Globals,6,1,pgIndex,doUpload,182,6,pgPdf,Process_Globals,7,0,pgPdf,images,27,0,Main,AppStart,28,6,pgIndex,Init,169,6
+NavigationStack=pgIndex,doUpload,404,6,Main,BANano_Ready,58,2,Visual Designer,pdflayout.bjl,-100,6,pgIndex,Init,219,6,Visual Designer,pdf1.bjl,-100,6,pgIndex,FromLayout,15,6,pgIndex,Process_Globals,5,0
 SelectedBuild=0
-VisibleModules=1,2
+VisibleModules=1

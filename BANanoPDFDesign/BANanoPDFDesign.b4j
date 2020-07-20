@@ -1,9 +1,11 @@
 ﻿AppType=JavaFX
 Build1=Default,b4j.example
-File1=fonts.zip
-File2=upload.php
+File1=dog.jpg
+File2=fonts.zip
+File3=upload.php
 FileGroup1=Default Group
 FileGroup2=Default Group
+FileGroup3=Default Group
 Group=Default Group
 Library1=jcore
 Library2=jfx
@@ -11,10 +13,10 @@ Library3=banano
 Library4=bananopostprocessor
 Library5=bananovuematerial
 Module1=pgPDFDesign
-NumberOfFiles=2
+NumberOfFiles=3
 NumberOfLibraries=5
 NumberOfModules=1
-Version=7.8
+Version=8
 @EndOfDesignText@
 #Region Project Attributes 
 	#MergeLibraries: True
@@ -28,13 +30,16 @@ Sub Process_Globals
 	Public AppName As String = "BANanoPDFDesign"
 	Private Publish As String
 	Private BP As BANanoPostProcessor
+	Private ServerIP As String
 End Sub
+
 
 Sub AppStart (Form1 As Form, Args() As String)
 	'post processor
 	BP.Initialize
 	BP.RedirectOutput(File.DirApp,"log.txt")
 	Publish = "C:\laragon\www"
+	ServerIP = "localhost"
 	'
 	Dim Version As Long = DateTime.now
 	Dim appFile As String = $"app${Version}.js"$
@@ -45,6 +50,11 @@ Sub AppStart (Form1 As Form, Args() As String)
 	BANano.Header.Title = AppName
 	BANano.JAVASCRIPT_NAME = appFile
 	BANano.TranspilerOptions.UseServiceWorker = False
+	
+	'set php settings
+	BANano.PHP_NAME = $"${AppName}.php"$
+	BANano.PHPHost = $"http://${ServerIP}/${AppName}/"$
+	BANano.PHPAddHeader("Access-Control-Allow-Origin: *")
 		
 	BANano.Build(Publish)
 	BP.OpenLog(File.DirApp, "log.txt")
