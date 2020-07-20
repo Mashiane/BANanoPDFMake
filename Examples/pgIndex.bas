@@ -21,6 +21,7 @@ Sub FromLayout
 	maker.author = "TheMash"
 	
 	BANano.LoadLayout("#body", "pdf1")
+	BANano.LoadLayout("#placeholder", "pdf2")
 	'
 	maker.AddHTML("#body")
 	'
