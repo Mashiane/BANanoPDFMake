@@ -340,9 +340,9 @@ Sub AddHTML(sourceID As String) As PDFMaker
 	Dim sourceHTML As String = el.GetHTML
 	Log(sourceHTML)
 	'convert the code
-	Dim PDFMakeJson As String = BANano.RunJavascriptMethod("htmlToPdfmake", Array(sourceHTML))
-	Log(PDFMakeJson)
-	content.Add(PDFMakeJson)
+	'Dim PDFMakeJson As String = BANano.RunJavascriptMethod("htmlToPdfmake", Array(sourceHTML))
+	'Log(PDFMakeJson)
+	'content.Add(PDFMakeJson)
 	Return Me
 End Sub
 
